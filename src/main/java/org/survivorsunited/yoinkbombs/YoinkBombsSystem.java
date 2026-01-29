@@ -116,7 +116,7 @@ public class YoinkBombsSystem extends EntityEventSystem<EntityStore, BreakBlockE
         if (variant == BombVariant.ORE && !isOreBlock(targetType)) {
             return;
         }
-        if (variant == BombVariant.HARVESTER && !isHarvestableCrop(targetType, cfg)) {
+        if (variant == BombVariant.HARVESTER && !YoinkBombsSystem.isHarvestableCrop(targetType, cfg)) {
             return;
         }
 
@@ -190,7 +190,7 @@ public class YoinkBombsSystem extends EntityEventSystem<EntityStore, BreakBlockE
                     if (type == null || isEmptyBlock(type)) {
                         continue;
                     }
-                    if (variant == BombVariant.HARVESTER && !isHarvestableCrop(type, cfg)) {
+                    if (variant == BombVariant.HARVESTER && !YoinkBombsSystem.isHarvestableCrop(type, cfg)) {
                         continue;
                     }
                     if (variant == BombVariant.ORE && !isOreBlock(type)) {
@@ -270,7 +270,7 @@ public class YoinkBombsSystem extends EntityEventSystem<EntityStore, BreakBlockE
                 continue;
             }
 
-            List<ItemStack> drops = getBlockDrops(type, silk);
+            List<ItemStack> drops = YoinkBombsSystem.getBlockDrops(type, silk);
             for (ItemStack drop : drops) {
                 if (yoink && cfg.yoinkToInventory() && tryAddToInventory(player.getInventory(), drop)) {
                     continue;
@@ -294,10 +294,67 @@ public class YoinkBombsSystem extends EntityEventSystem<EntityStore, BreakBlockE
 
     private void spawnItemDrop(@Nonnull Store<EntityStore> store, @Nonnull CommandBuffer<EntityStore> commandBuffer,
                                @Nonnull ItemStack drop, @Nonnull Vector3d position) {
+        spawnItemDropStatic(store, commandBuffer, drop, position);
+    }
+
+    /**
+     * Spawn an item drop entity at the given position. Used by harvester explosion block breaking.
+     */
+    public static void spawnItemDropStatic(@Nonnull Store<EntityStore> store, @Nonnull CommandBuffer<EntityStore> commandBuffer,
+                                          @Nonnull ItemStack drop, @Nonnull Vector3d position) {
         Holder<EntityStore> itemHolder = ItemComponent.generateItemDrop(store, drop, position, Vector3f.ZERO, 0.0F, 0.15F, 0.0F);
         if (itemHolder != null) {
             commandBuffer.addEntity(itemHolder, AddReason.SPAWN);
         }
+    }
+
+    /**
+     * Break only harvestable blocks (per harvester whitelist) in harvester radius around explosion
+     * position and spawn drops at explosion pos so they get yoinked. Called when a harvester
+     * bomb/arrow explodes (engine no longer breaks blocks for harvester).
+     */
+    public static void processHarvesterExplosionBlocks(@Nonnull World world, @Nonnull Vector3d explosionPos,
+                                                       @Nonnull Ref<EntityStore> ownerRef, @Nonnull YoinkBombsConfig cfg,
+                                                       @Nonnull Store<EntityStore> store, @Nonnull CommandBuffer<EntityStore> commandBuffer) {
+        Vector3i center = new Vector3i((int) Math.floor(explosionPos.x), (int) Math.floor(explosionPos.y), (int) Math.floor(explosionPos.z));
+        double radius = cfg.harvesterRadius();
+        int radiusCeil = (int) Math.ceil(radius);
+        double radiusSq = radius * radius;
+        List<Vector3i> toBreak = new ArrayList<>();
+        for (int dx = -radiusCeil; dx <= radiusCeil; dx++) {
+            for (int dy = -radiusCeil; dy <= radiusCeil; dy++) {
+                for (int dz = -radiusCeil; dz <= radiusCeil; dz++) {
+                    if ((dx * dx + dy * dy + dz * dz) > radiusSq) {
+                        continue;
+                    }
+                    Vector3i pos = new Vector3i(center.x + dx, center.y + dy, center.z + dz);
+                    BlockType type = world.getBlockType(pos.x, pos.y, pos.z);
+                    if (type == null || isEmptyBlock(type)) {
+                        continue;
+                    }
+                    if (!isHarvestableCrop(type, cfg)) {
+                        continue;
+                    }
+                    toBreak.add(pos);
+                }
+            }
+        }
+        for (Vector3i pos : toBreak) {
+            BlockType type = world.getBlockType(pos.x, pos.y, pos.z);
+            if (type == null || isEmptyBlock(type)) {
+                continue;
+            }
+            List<ItemStack> drops = getBlockDrops(type, false);
+            for (ItemStack drop : drops) {
+                spawnItemDropStatic(store, commandBuffer, drop, explosionPos);
+            }
+            world.setBlock(pos.x, pos.y, pos.z, "Empty", 256);
+        }
+    }
+
+    private static boolean isEmptyBlock(@Nonnull BlockType blockType) {
+        String id = blockType.getId();
+        return id == null || id.equals("Empty") || id.equalsIgnoreCase("empty");
     }
 
     private boolean tryAddToInventory(@Nullable Inventory inventory, @Nonnull ItemStack drop) {
@@ -332,10 +389,10 @@ public class YoinkBombsSystem extends EntityEventSystem<EntityStore, BreakBlockE
 
     /**
      * Harvester Bomb/Arrow (block-break path): only affect blocks whose ID starts with one of the harvester
-     * whitelist prefixes (default Plant_.* and Wood_.*). Thrown/shot Harvester uses Explode JSON ItemTool
-     * GatherTypes (SoftBlocks, Woods) – engine restricts by gather type.
+     * whitelist prefixes (default Plant_.* and Wood_.*). Thrown/shot Harvester no longer uses Explode
+     * ItemTool; we break only harvestable blocks in code.
      */
-    private boolean isHarvestableCrop(@Nonnull BlockType blockType, @Nonnull YoinkBombsConfig cfg) {
+    public static boolean isHarvestableCrop(@Nonnull BlockType blockType, @Nonnull YoinkBombsConfig cfg) {
         String id = blockType.getId();
         if (id == null) {
             return false;
@@ -353,12 +410,7 @@ public class YoinkBombsSystem extends EntityEventSystem<EntityStore, BreakBlockE
         return false;
     }
 
-    private boolean isEmptyBlock(@Nonnull BlockType blockType) {
-        String id = blockType.getId();
-        return id == null || id.equals("Empty") || id.equalsIgnoreCase("empty");
-    }
-
-    private List<ItemStack> getBlockDrops(@Nonnull BlockType type, boolean silk) {
+    public static List<ItemStack> getBlockDrops(@Nonnull BlockType type, boolean silk) {
         List<ItemStack> drops = new ArrayList<>();
         if (silk) {
             String itemId = type.getItem() != null ? type.getItem().getId() : type.getId();

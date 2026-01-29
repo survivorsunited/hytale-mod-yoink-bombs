@@ -18,6 +18,7 @@ public class YoinkBombsPlugin extends JavaPlugin {
     private final Config<YoinkBombsConfig> config;
     private Object regionService;
     private final List<PendingYoink> pendingYoinks = new CopyOnWriteArrayList<>();
+    private final List<PendingHarvesterBreak> pendingHarvesterBreaks = new CopyOnWriteArrayList<>();
 
     public YoinkBombsPlugin(@Nonnull JavaPluginInit init) {
         super(init);
@@ -30,7 +31,7 @@ public class YoinkBombsPlugin extends JavaPlugin {
         LOGGER.atInfo().log("Setting up plugin " + this.getName());
         this.getCommandRegistry().registerCommand(new YoinkBombsCommand(this.config));
         this.config.save();
-        YoinkBombsExplosionListener explosionListener = new YoinkBombsExplosionListener(this.config, this.pendingYoinks);
+        YoinkBombsExplosionListener explosionListener = new YoinkBombsExplosionListener(this.config, this.pendingYoinks, this.pendingHarvesterBreaks);
         registerEntityRemoveListener(explosionListener);
     }
 
@@ -53,7 +54,7 @@ public class YoinkBombsPlugin extends JavaPlugin {
             LOGGER.atInfo().log("WorldProtect not detected. Protection checks disabled.");
         }
         this.getEntityStoreRegistry().registerSystem(new YoinkBombsSystem(this.config, this.regionService));
-        this.getEntityStoreRegistry().registerSystem(new YoinkBombsItemPullSystem(this.config, this.pendingYoinks));
+        this.getEntityStoreRegistry().registerSystem(new YoinkBombsItemPullSystem(this.config, this.pendingYoinks, this.pendingHarvesterBreaks));
     }
 
     public Object getRegionService() {

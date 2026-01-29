@@ -1,6 +1,6 @@
 {
   "Type": "Explode",
-  "RunTime": 0.1,
+  "RunTime": 0,
   "Config": {
     "DamageEntities": true,
     "DamageBlocks": true,
@@ -13,9 +13,9 @@
         { "Power": 2, "GatherType": "SoftBlocks" },
         { "Power": 2, "GatherType": "Soils" },
         { "Power": 2, "GatherType": "Woods" },
-        { "Power": 3, "GatherType": "Rocks" },
+        { "Power": 4, "GatherType": "Rocks" },
         { "Power": 2, "GatherType": "Benches" },
-        { "Power": 2, "GatherType": "VolcanicRocks" },
+        { "Power": 4, "GatherType": "VolcanicRocks" },
         { "Power": 2, "GatherType": "OreCopper" },
         { "Power": 2, "GatherType": "OreIron" },
         { "Power": 2, "GatherType": "OreSilver" },

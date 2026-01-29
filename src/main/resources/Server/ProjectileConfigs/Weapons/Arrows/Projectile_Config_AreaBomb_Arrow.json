@@ -1,5 +1,11 @@
 {
   "Parent": "Projectile_Config_Arrow_Base",
+  "Model": "YoinkBombs_GlowArrow_Projectile",
+  "SpawnRotationOffset": {
+    "Pitch": 2,
+    "Yaw": 0.25,
+    "Roll": 0
+  },
   "LaunchForce": 80,
   "Physics": {
     "Type": "Standard",

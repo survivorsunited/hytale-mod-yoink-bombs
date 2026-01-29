@@ -21,6 +21,7 @@ import com.hypixel.hytale.server.core.modules.entity.EntityModule;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.item.ItemComponent;
+import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.Config;
 
@@ -45,16 +46,24 @@ public class YoinkBombsItemPullSystem extends EntityTickingSystem<EntityStore> {
     private final Config<YoinkBombsConfig> config;
     @Nonnull
     private final List<PendingYoink> pendingYoinks;
+    @Nonnull
+    private final List<PendingHarvesterBreak> pendingHarvesterBreaks;
 
     public YoinkBombsItemPullSystem(@Nonnull Config<YoinkBombsConfig> config,
-                                    @Nonnull List<PendingYoink> pendingYoinks) {
+                                    @Nonnull List<PendingYoink> pendingYoinks,
+                                    @Nonnull List<PendingHarvesterBreak> pendingHarvesterBreaks) {
         this.config = config;
         this.pendingYoinks = pendingYoinks;
+        this.pendingHarvesterBreaks = pendingHarvesterBreaks;
     }
 
     @Override
     public void tick(float dt, int index, @Nonnull ArchetypeChunk<EntityStore> archetypeChunk,
                      @Nonnull Store<EntityStore> store, @Nonnull CommandBuffer<EntityStore> commandBuffer) {
+        if (index == 0) {
+            processPendingHarvesterBreaks(store, commandBuffer);
+        }
+
         Ref<EntityStore> playerRef = archetypeChunk.getReferenceTo(index);
         Player player = EntityUtils.toHolder(index, archetypeChunk).getComponent(Player.getComponentType());
         if (player == null) {
@@ -96,6 +105,9 @@ public class YoinkBombsItemPullSystem extends EntityTickingSystem<EntityStore> {
             itemSpatialResource.getSpatialStructure().collect(explosionPos, radius, nearby);
 
             for (Ref<EntityStore> entityRef : nearby) {
+                if (!entityRef.isValid()) {
+                    continue;
+                }
                 ItemComponent itemComponent = commandBuffer.getComponent(entityRef, ItemComponent.getComponentType());
                 if (itemComponent == null || !itemComponent.canPickUp()) {
                     continue;
@@ -106,7 +118,9 @@ public class YoinkBombsItemPullSystem extends EntityTickingSystem<EntityStore> {
                 }
 
                 ItemStackTransaction transaction = container.addItemStack(stack);
-                commandBuffer.removeEntity(entityRef, RemoveReason.REMOVE);
+                if (entityRef.isValid()) {
+                    commandBuffer.removeEntity(entityRef, RemoveReason.REMOVE);
+                }
 
                 ItemStack remainder = transaction.getRemainder();
                 if (remainder != null && !remainder.isEmpty() && playerPos != null) {
@@ -124,6 +138,9 @@ public class YoinkBombsItemPullSystem extends EntityTickingSystem<EntityStore> {
                     commandBuffer.getResource(EntityModule.get().getItemSpatialResourceType());
             itemSpatial.getSpatialStructure().collect(feetPos, crossbowRadius, nearPlayer);
             for (Ref<EntityStore> entityRef : nearPlayer) {
+                if (!entityRef.isValid()) {
+                    continue;
+                }
                 ItemComponent itemComponent = commandBuffer.getComponent(entityRef, ItemComponent.getComponentType());
                 if (itemComponent == null || !itemComponent.canPickUp()) {
                     continue;
@@ -133,7 +150,9 @@ public class YoinkBombsItemPullSystem extends EntityTickingSystem<EntityStore> {
                     continue;
                 }
                 ItemStackTransaction transaction = container.addItemStack(stack);
-                commandBuffer.removeEntity(entityRef, RemoveReason.REMOVE);
+                if (entityRef.isValid()) {
+                    commandBuffer.removeEntity(entityRef, RemoveReason.REMOVE);
+                }
                 ItemStack remainder = transaction.getRemainder();
                 if (remainder != null && !remainder.isEmpty()) {
                     spawnItemDrop(store, commandBuffer, remainder, feetPos);
@@ -171,6 +190,39 @@ public class YoinkBombsItemPullSystem extends EntityTickingSystem<EntityStore> {
 
     private void removeExpired(long now) {
         pendingYoinks.removeIf(p -> p.isExpired(now));
+    }
+
+    /**
+     * Process pending harvester explosions: break only harvestable blocks (crops/plants/trees)
+     * in radius and spawn drops at explosion pos so they get yoinked. Run once per tick (index==0).
+     */
+    private void processPendingHarvesterBreaks(@Nonnull Store<EntityStore> store,
+                                               @Nonnull CommandBuffer<EntityStore> commandBuffer) {
+        Object external = store.getExternalData();
+        if (!(external instanceof EntityStore)) {
+            return;
+        }
+        World world = ((EntityStore) external).getWorld();
+        if (world == null) {
+            return;
+        }
+        YoinkBombsConfig cfg = this.config.get();
+        long now = System.currentTimeMillis();
+        Iterator<PendingHarvesterBreak> it = pendingHarvesterBreaks.iterator();
+        while (it.hasNext()) {
+            PendingHarvesterBreak pending = it.next();
+            if (pending.isExpired(now)) {
+                it.remove();
+                continue;
+            }
+            if (!pending.getOwnerRef().isValid()) {
+                it.remove();
+                continue;
+            }
+            it.remove();
+            YoinkBombsSystem.processHarvesterExplosionBlocks(
+                    world, pending.getExplosionPosition(), pending.getOwnerRef(), cfg, store, commandBuffer);
+        }
     }
 
     private void spawnItemDrop(@Nonnull Store<EntityStore> store, @Nonnull CommandBuffer<EntityStore> commandBuffer,

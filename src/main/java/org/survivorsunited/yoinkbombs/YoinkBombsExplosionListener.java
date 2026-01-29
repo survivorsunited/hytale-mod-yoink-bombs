@@ -36,11 +36,14 @@ public final class YoinkBombsExplosionListener {
 
     private final Config<YoinkBombsConfig> config;
     private final List<PendingYoink> pendingYoinks;
+    private final List<PendingHarvesterBreak> pendingHarvesterBreaks;
 
     public YoinkBombsExplosionListener(@Nonnull Config<YoinkBombsConfig> config,
-                                       @Nonnull List<PendingYoink> pendingYoinks) {
+                                       @Nonnull List<PendingYoink> pendingYoinks,
+                                       @Nonnull List<PendingHarvesterBreak> pendingHarvesterBreaks) {
         this.config = config;
         this.pendingYoinks = pendingYoinks;
+        this.pendingHarvesterBreaks = pendingHarvesterBreaks;
     }
 
     public void onEntityRemove(@Nonnull Object event) {
@@ -94,6 +97,34 @@ public final class YoinkBombsExplosionListener {
 
         long expiry = System.currentTimeMillis() + YOINK_DEFER_MS;
         pendingYoinks.add(new PendingYoink(explosionPos, ownerRef, expiry));
+        if (isHarvesterProjectile(projectileComponent) || hasHarvesterInHand(player.getInventory())) {
+            pendingHarvesterBreaks.add(new PendingHarvesterBreak(explosionPos, ownerRef, expiry));
+        }
+    }
+
+    /**
+     * Tries to detect if the removed projectile was a harvester bomb/arrow via reflection on
+     * ProjectileComponent (e.g. configId field). Fallback: owner has harvester item in hand.
+     */
+    private boolean isHarvesterProjectile(@Nonnull ProjectileComponent projectileComponent) {
+        String configId = getProjectileConfigId(projectileComponent);
+        return configId != null && configId.toLowerCase().contains("harvester");
+    }
+
+    @Nullable
+    private static String getProjectileConfigId(@Nonnull ProjectileComponent projectileComponent) {
+        for (String fieldName : new String[]{"configId", "projectileConfigId", "config"}) {
+            try {
+                Field field = ProjectileComponent.class.getDeclaredField(fieldName);
+                field.setAccessible(true);
+                Object value = field.get(projectileComponent);
+                if (value instanceof String) {
+                    return (String) value;
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        return null;
     }
 
     /**
@@ -121,5 +152,23 @@ public final class YoinkBombsExplosionListener {
         if (utility != null && !utility.isEmpty() && utility.getItemId() != null && utility.getItemId().startsWith(YOINK_PREFIX))
             return true;
         return false;
+    }
+
+    private boolean hasHarvesterInHand(@Nullable Inventory inventory) {
+        if (inventory == null) return false;
+        String hotbarId = getItemId(inventory.getActiveHotbarItem());
+        String utilityId = getItemId(inventory.getUtilityItem());
+        return isHarvesterItem(hotbarId) || isHarvesterItem(utilityId);
+    }
+
+    @Nullable
+    private static String getItemId(@Nullable ItemStack stack) {
+        return stack != null && !stack.isEmpty() ? stack.getItemId() : null;
+    }
+
+    private static boolean isHarvesterItem(@Nullable String itemId) {
+        if (itemId == null) return false;
+        String lower = itemId.toLowerCase();
+        return lower.contains("harvesterbomb") || lower.contains("harvesterarrow");
     }
 }
