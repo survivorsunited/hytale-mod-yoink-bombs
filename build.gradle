@@ -2,7 +2,14 @@ plugins {
     id 'java'
     id 'org.jetbrains.gradle.plugin.idea-ext' version '1.3'
     id "com.gradleup.shadow" version "9.3.1"
-    id "run-hytale"
+}
+
+// Apply run-hytale from buildSrc when available (runServer, prepareServer). Optional on CI.
+try {
+    apply plugin: "run-hytale"
+    logger.lifecycle("run-hytale plugin applied (runServer task available)")
+} catch (Exception e) {
+    logger.warn("run-hytale plugin not applied: {} – runServer not available", e.message)
 }
 
 import org.gradle.internal.os.OperatingSystem
@@ -128,9 +135,11 @@ dependencies {
     compileOnly(files("$hytaleHome/install/$patchline/package/game/latest/Server/HytaleServer.jar"))
 }
 
-runHytale {
-    jarUrl = "$hytaleHome/install/$patchline/package/game/latest/Server/HytaleServer.jar"
-    assetsPath = "$hytaleHome/install/$patchline/package/game/latest/Assets.zip"
+if (project.extensions.findByName("runHytale") != null) {
+    runHytale {
+        jarUrl = "$hytaleHome/install/$patchline/package/game/latest/Server/HytaleServer.jar"
+        assetsPath = "$hytaleHome/install/$patchline/package/game/latest/Assets.zip"
+    }
 }
 
 // Create the working directory to run the server if it does not already exist.
