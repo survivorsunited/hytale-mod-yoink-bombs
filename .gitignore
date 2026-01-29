@@ -55,7 +55,18 @@ desktop.ini
 *.bak
 *.swp
 *~
+.env
 
 # Template specific
 libs/HytaleServer.jar
 buildSrc/
+.jdk/
+
+# ref projects
+refs/
+
+# tests mods
+tests/mods/
+
+# hytale server cache
+.hytale

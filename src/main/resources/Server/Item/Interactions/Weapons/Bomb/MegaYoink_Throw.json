@@ -1,0 +1,24 @@
+{
+  "Type": "Serial",
+  "Interactions": [
+    {
+      "Type": "Simple",
+      "RunTime": 0.25,
+      "Effects": {
+        "ItemAnimationId": "Throw"
+      }
+    },
+    {
+      "Type": "Projectile",
+      "Config": "Projectile_Config_MegaYoink"
+    },
+    {
+      "Type": "ModifyInventory",
+      "RequiredGameMode": "Adventure",
+      "ItemToRemove": {
+        "Id": "SU_YoinkBombs_MegaYoink",
+        "Quantity": 1
+      }
+    }
+  ]
+}

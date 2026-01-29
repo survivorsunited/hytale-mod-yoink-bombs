@@ -1,0 +1,86 @@
+{
+  "TranslationProperties": {
+    "Name": "Area Bomb",
+    "Description": "Breaks blocks in a radius. Drops spawn normally."
+  },
+  "Categories": [
+    "Items.Weapons"
+  ],
+  "Quality": "Legendary",
+  "ItemLevel": 20,
+  "PlayerAnimationsId": "Item",
+  "Interactions": {
+    "Secondary": {
+      "Interactions": [
+        "AreaBomb_Throw",
+        {
+          "Type": "ModifyInventory",
+          "ItemToRemove": {
+            "Id": "SU_YoinkBombs_AreaBomb",
+            "Quantity": 1
+          }
+        }
+      ]
+    }
+  },
+  "Recipe": {
+    "TimeSeconds": 0.5,
+    "Input": [
+      {
+        "ItemId": "Ingredient_Powder_Boom",
+        "Quantity": 4
+      },
+      {
+        "ItemId": "Ingredient_Fabric_Scrap_Linen",
+        "Quantity": 3
+      },
+      {
+        "ItemId": "Ingredient_Bar_Iron",
+        "Quantity": 1
+      }
+    ],
+    "OutputQuantity": 2,
+    "BenchRequirement": [
+      {
+        "Id": "Workbench",
+        "Type": "Crafting",
+        "Categories": [
+          "Workbench_Tools"
+        ]
+      }
+    ]
+  },
+  "MaxStack": 10,
+  "IconProperties": {
+    "Scale": 0.87,
+    "Translation": [
+      -7.11,
+      -7.7
+    ],
+    "Rotation": [
+      4.685,
+      6.935,
+      315
+    ]
+  },
+  "Model": "NPC/Intelligent/Goblin/Models/Weapons/Bomb/Fire.blockymodel",
+  "Texture": "NPC/Intelligent/Goblin/Models/Weapons/Bomb/Fire_Texture.png",
+  "Icon": "Icons/ItemsGenerated/Weapon_Bomb_Fire_Goblin.png",
+  "Particles": [
+    {
+      "SystemId": "Fuse_Bomb",
+      "TargetNodeName": "Fuse_Lit",
+      "TargetEntityPart": "PrimaryItem"
+    }
+  ],
+  "Tags": {
+    "Type": [
+      "Weapon"
+    ],
+    "Family": [
+      "Bomb"
+    ]
+  },
+  "Weapon": {},
+  "SoundEventId": "SFX_Bomb_Fuse"
+}

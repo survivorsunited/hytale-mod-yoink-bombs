@@ -1,14 +1,14 @@
 {
-    "Group": "Example",
-    "Name": "ExamplePlugin",
-    "Version": "0.0.2",
-    "Description": "An example plugin for HyTale!",
+    "Group": "SurvivorsUnited",
+    "Name": "YoinkBombs",
+    "Version": "0.0.26",
+    "Description": "Bomb upgrades with area block destruction and optional auto-loot.",
     "Authors": [
         {
-            "Name": "It's you!"
+            "Name": "SurvivorsUnited"
         }
     ],
-    "Website": "example.org",
+    "Website": "https://survivorsunited.org",
     "ServerVersion": "*",
     "Dependencies": {
         
@@ -17,6 +17,6 @@
         
     },
     "DisabledByDefault": false,
-    "Main": "org.example.plugin.ExamplePlugin",
+    "Main": "org.survivorsunited.yoinkbombs.YoinkBombsPlugin",
     "IncludesAssetPack": true
 }

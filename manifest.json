@@ -1,0 +1,7 @@
+{
+  "Group": "dev.worldprotect",
+  "Name": "WorldProtect",
+  "Version": "1.0.2",
+  "Website": "https://holytale.net/",
+  "Main": "dev.worldprotect.worldprotect.WorldProtectPlugin"
+}

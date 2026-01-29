@@ -1,0 +1,9 @@
+{
+  "Type": "Replace",
+  "Var": "Primary_Shoot_Charge",
+  "DefaultValue": {
+    "Interactions": [
+      "YoinkBombs_Bow_Primary_Shoot_Charge"
+    ]
+  }
+}

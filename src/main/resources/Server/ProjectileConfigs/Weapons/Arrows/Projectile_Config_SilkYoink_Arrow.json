@@ -1,0 +1,29 @@
+{
+  "Parent": "Projectile_Config_Arrow_Base",
+  "LaunchForce": 80,
+  "Physics": {
+    "Type": "Standard",
+    "Gravity": 10,
+    "TerminalVelocityAir": 50,
+    "TerminalVelocityWater": 15,
+    "RotationMode": "VelocityDamped",
+    "Bounciness": 0.0,
+    "SticksVertically": true
+  },
+  "LaunchLocalSoundEventId": "SFX_Bow_T2_Shoot_Local",
+  "LaunchWorldSoundEventId": "SFX_Bow_T2_Shoot",
+  "Interactions": {
+    "ProjectileHit": {
+      "Interactions": [
+        "SilkYoink_Explode",
+        { "Type": "RemoveEntity" }
+      ]
+    },
+    "ProjectileMiss": {
+      "Interactions": [
+        "SilkYoink_Explode",
+        { "Type": "RemoveEntity" }
+      ]
+    }
+  }
+}

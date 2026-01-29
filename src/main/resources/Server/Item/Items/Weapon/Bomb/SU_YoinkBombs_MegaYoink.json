@@ -1,0 +1,86 @@
+{
+  "TranslationProperties": {
+    "Name": "Mega Yoink Bomb",
+    "Description": "Larger radius yoink with higher cost."
+  },
+  "Categories": [
+    "Items.Weapons"
+  ],
+  "Quality": "Legendary",
+  "ItemLevel": 40,
+  "PlayerAnimationsId": "Item",
+  "Interactions": {
+    "Secondary": {
+      "Interactions": [
+        "MegaYoink_Throw",
+        {
+          "Type": "ModifyInventory",
+          "ItemToRemove": {
+            "Id": "SU_YoinkBombs_MegaYoink",
+            "Quantity": 1
+          }
+        }
+      ]
+    }
+  },
+  "Recipe": {
+    "TimeSeconds": 1.0,
+    "Input": [
+      {
+        "ItemId": "Ingredient_Powder_Boom",
+        "Quantity": 8
+      },
+      {
+        "ItemId": "Ingredient_Fabric_Scrap_Linen",
+        "Quantity": 4
+      },
+      {
+        "ItemId": "Ingredient_Bar_Iron",
+        "Quantity": 3
+      }
+    ],
+    "OutputQuantity": 1,
+    "BenchRequirement": [
+      {
+        "Id": "Workbench",
+        "Type": "Crafting",
+        "Categories": [
+          "Workbench_Tools"
+        ]
+      }
+    ]
+  },
+  "MaxStack": 5,
+  "IconProperties": {
+    "Scale": 0.87,
+    "Translation": [
+      -7.11,
+      -7.7
+    ],
+    "Rotation": [
+      4.685,
+      6.935,
+      315
+    ]
+  },
+  "Model": "NPC/Intelligent/Goblin/Models/Weapons/Bomb_Large/Fire.blockymodel",
+  "Texture": "NPC/Intelligent/Goblin/Models/Weapons/Bomb_Large/Fire_Texture.png",
+  "Icon": "Icons/ItemsGenerated/Weapon_Bomb_Large_Fire.png",
+  "Particles": [
+    {
+      "SystemId": "Fuse_Bomb",
+      "TargetNodeName": "Fuse_Lit",
+      "TargetEntityPart": "PrimaryItem"
+    }
+  ],
+  "Tags": {
+    "Type": [
+      "Weapon"
+    ],
+    "Family": [
+      "Bomb"
+    ]
+  },
+  "Weapon": {},
+  "SoundEventId": "SFX_Bomb_Fuse"
+}

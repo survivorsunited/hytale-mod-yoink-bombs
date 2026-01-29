@@ -1,0 +1,477 @@
+{
+  "Type": "Charging",
+  "AllowIndefiniteHold": true,
+  "DisplayProgress": false,
+  "Effects": {
+    "ItemAnimationId": "ShootCharging",
+    "ClearAnimationOnFinish": true,
+    "ClearSoundEventOnFinish": true,
+    "WorldSoundEventId": "SFX_Bow_T2_Draw",
+    "LocalSoundEventId": "SFX_Bow_T2_Draw_Local",
+    "Particles": [
+      {
+        "PositionOffset": {
+          "X": 0.075,
+          "Y": -0.4,
+          "Z": 0.075
+        },
+        "RotationOffset": {
+          "Pitch": 0,
+          "Roll": 0,
+          "Yaw": 90
+        },
+        "Scale": 0.5,
+        "TargetNodeName": "Handle",
+        "SystemId": "Bow_Charging"
+      }
+    ]
+  },
+  "HorizontalSpeedMultiplier": 0.67,
+  "Next": {
+    "0.1": {
+      "Type": "ModifyInventory",
+      "ItemToRemove": {
+        "Id": "SU_YoinkBombs_AreaArrow",
+        "Quantity": 1
+      },
+      "Next": {
+        "Type": "Replace",
+        "Var": "Primary_Shoot_Strength_0",
+        "DefaultValue": {
+          "Interactions": [
+            "YoinkBombs_Bow_Shoot_Area"
+          ]
+        }
+      },
+      "Failed": {
+        "Type": "ModifyInventory",
+        "ItemToRemove": {
+          "Id": "SU_YoinkBombs_OreArrow",
+          "Quantity": 1
+        },
+        "Next": {
+          "Type": "Replace",
+          "Var": "Primary_Shoot_Strength_0",
+          "DefaultValue": {
+            "Interactions": [
+              "YoinkBombs_Bow_Shoot_Ore"
+            ]
+          }
+        },
+        "Failed": {
+          "Type": "ModifyInventory",
+          "ItemToRemove": {
+            "Id": "SU_YoinkBombs_SilkYoinkArrow",
+            "Quantity": 1
+          },
+          "Next": {
+            "Type": "Replace",
+            "Var": "Primary_Shoot_Strength_0",
+            "DefaultValue": {
+              "Interactions": [
+                "YoinkBombs_Bow_Shoot_SilkYoink"
+              ]
+            }
+          },
+          "Failed": {
+            "Type": "ModifyInventory",
+            "ItemToRemove": {
+              "Id": "SU_YoinkBombs_MegaYoinkArrow",
+              "Quantity": 1
+            },
+            "Next": {
+              "Type": "Replace",
+              "Var": "Primary_Shoot_Strength_0",
+              "DefaultValue": {
+                "Interactions": [
+                  "YoinkBombs_Bow_Shoot_MegaYoink"
+                ]
+              }
+            },
+            "Failed": {
+              "Type": "ModifyInventory",
+              "ItemToRemove": {
+                "Id": "SU_YoinkBombs_HarvesterArrow",
+                "Quantity": 1
+              },
+              "Next": {
+                "Type": "Replace",
+                "Var": "Primary_Shoot_Strength_0",
+                "DefaultValue": {
+                  "Interactions": [
+                    "YoinkBombs_Bow_Shoot_Harvester"
+                  ]
+                }
+              },
+              "Failed": {
+                "Type": "Replace",
+                "Var": "No_Ammo_Effects",
+                "DefaultValue": {
+                  "Interactions": [
+                    "Common_Bow_No_Ammo"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "0.3": {
+      "Type": "ModifyInventory",
+      "ItemToRemove": {
+        "Id": "SU_YoinkBombs_AreaArrow",
+        "Quantity": 1
+      },
+      "Next": {
+        "Type": "Replace",
+        "Var": "Primary_Shoot_Strength_1",
+        "DefaultValue": {
+          "Interactions": [
+            "YoinkBombs_Bow_Shoot_Area"
+          ]
+        }
+      },
+      "Failed": {
+        "Type": "ModifyInventory",
+        "ItemToRemove": {
+          "Id": "SU_YoinkBombs_OreArrow",
+          "Quantity": 1
+        },
+        "Next": {
+          "Type": "Replace",
+          "Var": "Primary_Shoot_Strength_1",
+          "DefaultValue": {
+            "Interactions": [
+              "YoinkBombs_Bow_Shoot_Ore"
+            ]
+          }
+        },
+        "Failed": {
+          "Type": "ModifyInventory",
+          "ItemToRemove": {
+            "Id": "SU_YoinkBombs_SilkYoinkArrow",
+            "Quantity": 1
+          },
+          "Next": {
+            "Type": "Replace",
+            "Var": "Primary_Shoot_Strength_1",
+            "DefaultValue": {
+              "Interactions": [
+                "YoinkBombs_Bow_Shoot_SilkYoink"
+              ]
+            }
+          },
+          "Failed": {
+            "Type": "ModifyInventory",
+            "ItemToRemove": {
+              "Id": "SU_YoinkBombs_MegaYoinkArrow",
+              "Quantity": 1
+            },
+            "Next": {
+              "Type": "Replace",
+              "Var": "Primary_Shoot_Strength_1",
+              "DefaultValue": {
+                "Interactions": [
+                  "YoinkBombs_Bow_Shoot_MegaYoink"
+                ]
+              }
+            },
+            "Failed": {
+              "Type": "ModifyInventory",
+              "ItemToRemove": {
+                "Id": "SU_YoinkBombs_HarvesterArrow",
+                "Quantity": 1
+              },
+              "Next": {
+                "Type": "Replace",
+                "Var": "Primary_Shoot_Strength_1",
+                "DefaultValue": {
+                  "Interactions": [
+                    "YoinkBombs_Bow_Shoot_Harvester"
+                  ]
+                }
+              },
+              "Failed": {
+                "Type": "Replace",
+                "Var": "No_Ammo_Effects",
+                "DefaultValue": {
+                  "Interactions": [
+                    "Common_Bow_No_Ammo"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "0.6": {
+      "Type": "ModifyInventory",
+      "ItemToRemove": {
+        "Id": "SU_YoinkBombs_AreaArrow",
+        "Quantity": 1
+      },
+      "Next": {
+        "Type": "Replace",
+        "Var": "Primary_Shoot_Strength_2",
+        "DefaultValue": {
+          "Interactions": [
+            "YoinkBombs_Bow_Shoot_Area"
+          ]
+        }
+      },
+      "Failed": {
+        "Type": "ModifyInventory",
+        "ItemToRemove": {
+          "Id": "SU_YoinkBombs_OreArrow",
+          "Quantity": 1
+        },
+        "Next": {
+          "Type": "Replace",
+          "Var": "Primary_Shoot_Strength_2",
+          "DefaultValue": {
+            "Interactions": [
+              "YoinkBombs_Bow_Shoot_Ore"
+            ]
+          }
+        },
+        "Failed": {
+          "Type": "ModifyInventory",
+          "ItemToRemove": {
+            "Id": "SU_YoinkBombs_SilkYoinkArrow",
+            "Quantity": 1
+          },
+          "Next": {
+            "Type": "Replace",
+            "Var": "Primary_Shoot_Strength_2",
+            "DefaultValue": {
+              "Interactions": [
+                "YoinkBombs_Bow_Shoot_SilkYoink"
+              ]
+            }
+          },
+          "Failed": {
+            "Type": "ModifyInventory",
+            "ItemToRemove": {
+              "Id": "SU_YoinkBombs_MegaYoinkArrow",
+              "Quantity": 1
+            },
+            "Next": {
+              "Type": "Replace",
+              "Var": "Primary_Shoot_Strength_2",
+              "DefaultValue": {
+                "Interactions": [
+                  "YoinkBombs_Bow_Shoot_MegaYoink"
+                ]
+              }
+            },
+            "Failed": {
+              "Type": "ModifyInventory",
+              "ItemToRemove": {
+                "Id": "SU_YoinkBombs_HarvesterArrow",
+                "Quantity": 1
+              },
+              "Next": {
+                "Type": "Replace",
+                "Var": "Primary_Shoot_Strength_2",
+                "DefaultValue": {
+                  "Interactions": [
+                    "YoinkBombs_Bow_Shoot_Harvester"
+                  ]
+                }
+              },
+              "Failed": {
+                "Type": "Replace",
+                "Var": "No_Ammo_Effects",
+                "DefaultValue": {
+                  "Interactions": [
+                    "Common_Bow_No_Ammo"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "0.9": {
+      "Type": "ModifyInventory",
+      "ItemToRemove": {
+        "Id": "SU_YoinkBombs_AreaArrow",
+        "Quantity": 1
+      },
+      "Next": {
+        "Type": "Replace",
+        "Var": "Primary_Shoot_Strength_3",
+        "DefaultValue": {
+          "Interactions": [
+            "YoinkBombs_Bow_Shoot_Area"
+          ]
+        }
+      },
+      "Failed": {
+        "Type": "ModifyInventory",
+        "ItemToRemove": {
+          "Id": "SU_YoinkBombs_OreArrow",
+          "Quantity": 1
+        },
+        "Next": {
+          "Type": "Replace",
+          "Var": "Primary_Shoot_Strength_3",
+          "DefaultValue": {
+            "Interactions": [
+              "YoinkBombs_Bow_Shoot_Ore"
+            ]
+          }
+        },
+        "Failed": {
+          "Type": "ModifyInventory",
+          "ItemToRemove": {
+            "Id": "SU_YoinkBombs_SilkYoinkArrow",
+            "Quantity": 1
+          },
+          "Next": {
+            "Type": "Replace",
+            "Var": "Primary_Shoot_Strength_3",
+            "DefaultValue": {
+              "Interactions": [
+                "YoinkBombs_Bow_Shoot_SilkYoink"
+              ]
+            }
+          },
+          "Failed": {
+            "Type": "ModifyInventory",
+            "ItemToRemove": {
+              "Id": "SU_YoinkBombs_MegaYoinkArrow",
+              "Quantity": 1
+            },
+            "Next": {
+              "Type": "Replace",
+              "Var": "Primary_Shoot_Strength_3",
+              "DefaultValue": {
+                "Interactions": [
+                  "YoinkBombs_Bow_Shoot_MegaYoink"
+                ]
+              }
+            },
+            "Failed": {
+              "Type": "ModifyInventory",
+              "ItemToRemove": {
+                "Id": "SU_YoinkBombs_HarvesterArrow",
+                "Quantity": 1
+              },
+              "Next": {
+                "Type": "Replace",
+                "Var": "Primary_Shoot_Strength_3",
+                "DefaultValue": {
+                  "Interactions": [
+                    "YoinkBombs_Bow_Shoot_Harvester"
+                  ]
+                }
+              },
+              "Failed": {
+                "Type": "Replace",
+                "Var": "No_Ammo_Effects",
+                "DefaultValue": {
+                  "Interactions": [
+                    "Common_Bow_No_Ammo"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "1.2": {
+      "Type": "ModifyInventory",
+      "ItemToRemove": {
+        "Id": "SU_YoinkBombs_AreaArrow",
+        "Quantity": 1
+      },
+      "Next": {
+        "Type": "Replace",
+        "Var": "Primary_Shoot_Strength_4",
+        "DefaultValue": {
+          "Interactions": [
+            "YoinkBombs_Bow_Shoot_Area"
+          ]
+        }
+      },
+      "Failed": {
+        "Type": "ModifyInventory",
+        "ItemToRemove": {
+          "Id": "SU_YoinkBombs_OreArrow",
+          "Quantity": 1
+        },
+        "Next": {
+          "Type": "Replace",
+          "Var": "Primary_Shoot_Strength_4",
+          "DefaultValue": {
+            "Interactions": [
+              "YoinkBombs_Bow_Shoot_Ore"
+            ]
+          }
+        },
+        "Failed": {
+          "Type": "ModifyInventory",
+          "ItemToRemove": {
+            "Id": "SU_YoinkBombs_SilkYoinkArrow",
+            "Quantity": 1
+          },
+          "Next": {
+            "Type": "Replace",
+            "Var": "Primary_Shoot_Strength_4",
+            "DefaultValue": {
+              "Interactions": [
+                "YoinkBombs_Bow_Shoot_SilkYoink"
+              ]
+            }
+          },
+          "Failed": {
+            "Type": "ModifyInventory",
+            "ItemToRemove": {
+              "Id": "SU_YoinkBombs_MegaYoinkArrow",
+              "Quantity": 1
+            },
+            "Next": {
+              "Type": "Replace",
+              "Var": "Primary_Shoot_Strength_4",
+              "DefaultValue": {
+                "Interactions": [
+                  "YoinkBombs_Bow_Shoot_MegaYoink"
+                ]
+              }
+            },
+            "Failed": {
+              "Type": "ModifyInventory",
+              "ItemToRemove": {
+                "Id": "SU_YoinkBombs_HarvesterArrow",
+                "Quantity": 1
+              },
+              "Next": {
+                "Type": "Replace",
+                "Var": "Primary_Shoot_Strength_4",
+                "DefaultValue": {
+                  "Interactions": [
+                    "YoinkBombs_Bow_Shoot_Harvester"
+                  ]
+                }
+              },
+              "Failed": {
+                "Type": "Replace",
+                "Var": "No_Ammo_Effects",
+                "DefaultValue": {
+                  "Interactions": [
+                    "Common_Bow_No_Ammo"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

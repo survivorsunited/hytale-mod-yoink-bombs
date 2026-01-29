@@ -1,381 +1,255 @@
-# Hytale Plugin Template
+# Yoink Bombs
 
-A minimal, ready-to-use template for creating Hytale plugins with modern build tools and automated testing.
+Explode it. Break it. Yoink the loot.
 
-> **✨ Builds immediately without any changes!** Clone and run `./gradlew shadowJar` to get a working plugin JAR.
+Yoink Bombs is a Hytale mod that adds area block destruction and an auto-loot ("yoink") effect: dropped items are sent to the player who triggered the explosion. Use bombs by throwing them or by breaking a block with a bomb in hand; use the bow or crossbow to fire bomb arrows. All items are Legendary and craftable at the Workbench (Workbench_Tools).
+
+---
+
+## Behaviour
+
+### How yoink works
+
+- **Block-break path:** When you break a block with a Yoink Bomb in hand (right-click / use), the mod collects blocks in a radius (or connected ore/crops for Ore/Harvester), breaks them, and either adds drops to your inventory or spawns them at your feet.
+- **Thrown / shot path:** When a bomb or bomb arrow explodes, the game breaks blocks in the explosion radius. The mod then **yoinks** item drops near the explosion into your inventory (or spawns remainder at your feet). You must have a Yoink Bombs item in hand (any bomb, any arrow, bow, or crossbow) when the projectile is removed for yoink to run.
+- **Fallback pull:** If you have the **Yoink Bombs Bow** or **Crossbow** equipped, the mod also pulls items within a large radius (default 32 blocks, configurable) around you every tick. This works even when the explosion yoink does not run.
+
+### Who can use it
+
+- Only players with the **yoinkbombs.trusted** permission can trigger block-break yoink (breaking blocks with a bomb in hand).
+- Thrown bombs and bomb arrows explode and break blocks per game rules; yoink still requires a Yoink Bombs item in hand when the projectile is removed.
+
+### Item quality and crafting
+
+- All Yoink Bombs items (bombs, arrows, bow, crossbow) are **Legendary** and have **crafting recipes** at the **Workbench** (Workbench_Tools). See [Recipes](#recipes) below.
+
+---
 
 ## Features
 
-✅ **Modern Build System** - Gradle with Kotlin DSL  
-✅ **Automated Testing** - Custom Gradle plugin for one-command server testing  
-✅ **Java 25** - Latest Java features  
-✅ **ShadowJar** - Automatic dependency bundling  
-✅ **CI/CD Ready** - GitHub Actions workflow included  
-✅ **Minimal Structure** - Only essential files, write your own code
+- Area block destruction (configurable radius per variant)
+- Auto-loot: drops go to inventory when possible, remainder at player feet
+- Bow and crossbow: fire bomb arrows; fallback pull when bow/crossbow equipped
+- Server-safe: respects claims / protection; configurable; permission-gated
 
 ---
 
-## Quick Start
+## Bomb and arrow variants
 
-### Prerequisites
+### Area Bomb
 
-- **Java 25 JDK** - [Download here](https://www.oracle.com/java/technologies/downloads/)
-- **IntelliJ IDEA** - [Download here](https://www.jetbrains.com/idea/download/) (Community Edition is fine)
-- **Git** - [Download here](https://git-scm.com/)
+- Explosion destroys nearby blocks
+- All resulting drops are teleported to the triggering player
+- Thrown bombs stick to surfaces before exploding
 
-### 1. Clone or Download
+### Ore Bomb
 
-```bash
-git clone https://github.com/yourusername/hytale-plugin-template.git
-cd hytale-plugin-template
-```
+- Thrown directly at ore blocks to mine them
+- Only targets ore blocks within a small radius
+- All resulting drops are teleported to the triggering player
+- Thrown bombs stick to surfaces before exploding
 
-**The template builds immediately without any changes!**  
-You can customize it later when you're ready to develop your plugin.
+### Harvester Bomb
 
-### 2. Build Immediately (No Changes Needed!)
+- Harvests crops only (blocks with IDs containing "crop" or "plant")
+- All resulting drops are teleported to the triggering player
+- Thrown bombs stick to surfaces before exploding
 
-The template works out-of-the-box:
+### Mega Yoink
 
-```bash
-# Windows
-gradlew.bat shadowJar
+- Larger radius and higher cost
+- All resulting drops are teleported to the triggering player
 
-# Linux/Mac
-./gradlew shadowJar
-```
+### Silk Yoink
 
-Your plugin JAR will be in: `build/libs/TemplatePlugin-1.0.0.jar`
-
-### 3. Customize Your Plugin (Optional)
-
-When ready to customize, edit these files:
-
-**`settings.gradle.kts`:**
-
-```kotlin
-rootProject.name = "your-plugin-name"
-```
-
-**`gradle.properties`:**
-
-```properties
-pluginGroup=com.yourname
-pluginVersion=1.0.0
-pluginDescription=Your plugin description
-```
-
-**`src/main/resources/manifest.json`:**
-
-```json
-{
-  "Group": "YourName",
-  "Name": "YourPluginName",
-  "Main": "com.yourname.yourplugin.YourPlugin"
-}
-```
-
-**Rename the main plugin class:**
-
-- Rename `src/main/java/com/example/templateplugin/TemplatePlugin.java`
-- Update package name to match your `pluginGroup`
-
-### 4. Build Your Plugin
-
-```bash
-# Windows
-gradlew.bat shadowJar
-
-# Linux/Mac
-./gradlew shadowJar
-```
-
-Your plugin JAR will be in: `build/libs/YourPluginName-1.0.0.jar`
-
-### 5. Implement Your Plugin
-
-Write your plugin code in `src/main/java/`:
-
-- Commands
-- Event listeners
-- Services
-- Storage
-- Utilities
-
-See our [documentation](../Documentation/) for examples and patterns.
-
-### 6. Test Your Plugin (Automated!)
-
-```bash
-# Windows
-gradlew.bat runServer
-
-# Linux/Mac
-./gradlew runServer
-```
-
-This will:
-
-1. Download the Hytale server (cached for future runs)
-2. Build your plugin
-3. Copy it to the server's mods folder
-4. Start the server with interactive console
+- Block drops itself where supported
+- All resulting drops are teleported to the triggering player
 
 ---
 
-## Project Structure
+## Recipes
 
-```
-TemplatePlugin/
-├── .github/workflows/
-│   └── build.yml                    # CI/CD workflow
-├── buildSrc/
-│   ├── build.gradle.kts             # Custom plugin configuration
-│   └── src/main/kotlin/
-│       └── RunHytalePlugin.kt       # Automated server testing
-├── src/main/
-│   ├── java/com/example/templateplugin/
-│   │   └── TemplatePlugin.java      # Minimal main class (example)
-│   └── resources/
-│       └── manifest.json            # Plugin metadata
-├── .gitignore                       # Git ignore rules
-├── build.gradle.kts                 # Build configuration
-├── gradle.properties                # Project properties
-├── settings.gradle.kts              # Project settings
-├── LICENSE                          # MIT License
-└── README.md                        # This file
-```
+All recipes use the **Workbench** with category **Workbench_Tools**. Ingredients use Hytale IDs (e.g. `Ingredient_Powder_Boom`, `Ingredient_Fabric_Scrap_Linen`, `Ingredient_Bar_Iron`).
 
-**Note:** This is a minimal template. Create your own folder structure:
+### Bombs
 
-- `commands/` - For command implementations
-- `listeners/` - For event listeners
-- `services/` - For business logic
-- `storage/` - For data persistence
-- `utils/` - For utility classes
-- `config/` - For configuration management
+| Item | Ingredients | Output | Time |
+|------|-------------|--------|------|
+| **Area Bomb** | 4× Powder Boom, 3× Fabric Scrap Linen, 1× Iron Bar | 2 | 0.5 s |
+| **Ore Bomb** | 5× Powder Boom, 3× Fabric Scrap Linen, 2× Iron Bar | 2 | 0.75 s |
+| **Harvester Bomb** | 5× Powder Boom, 3× Fabric Scrap Linen, 1× Iron Bar | 2 | 0.75 s |
+| **Mega Yoink** | 8× Powder Boom, 4× Fabric Scrap Linen, 3× Iron Bar | 1 | 1.0 s |
+| **Silk Yoink** | 6× Powder Boom, 4× Fabric Scrap Linen, 2× Iron Bar | 1 | 1.0 s |
+
+### Arrows (all five types)
+
+Same recipe for **Area**, **Ore**, **Harvester**, **Mega Yoink**, and **Silk Yoink** arrows:
+
+| Ingredients | Output | Time |
+|-------------|--------|------|
+| 1× Iron Bar, 1× Powder Boom, 1× Fabric Scrap Linen | 8 arrows | 0.5 s |
+
+### Bow and crossbow
+
+| Item | Ingredients | Output | Time |
+|------|-------------|--------|------|
+| **Yoink Bomb Bow** | 2× Iron Bar, 3× Fabric Scrap Linen, 2× Powder Boom | 1 | 1.0 s |
+| **Yoink Bomb Crossbow** | 3× Iron Bar, 2× Fabric Scrap Linen, 3× Powder Boom | 1 | 1.5 s |
 
 ---
 
-## Development Workflow
+## Commands
 
-### Building
+Requires permission **yoinkbombs.admin** (e.g. OP). Values are saved to config.
 
-```bash
-# Compile only
-./gradlew compileJava
+| Command | Description |
+|---------|-------------|
+| `/yoinkbombs` | Show usage and available variants/attrs. |
+| `/yoinkbombs reload` | Reload config from disk (if supported). |
 
-# Build plugin JAR
-./gradlew shadowJar
+### Bomb radius and damage
 
-# Clean and rebuild
-./gradlew clean shadowJar
-```
+`/yoinkbombs <variant> <attr> <number>`
 
-### Testing
+- **Variants:** `area`, `ore`, `harvester`, `mega`, `silk`
+- **Attrs:** `BlockDamageRadius`, `EntityDamageRadius`
+- **Number:** 0.5 up to variant max (e.g. 64 for area, 128 for mega, 32 for ore).
 
-```bash
-# Run server with your plugin
-./gradlew runServer
+Examples:
 
-# Run unit tests
-./gradlew test
+- `/yoinkbombs area BlockDamageRadius 6`
+- `/yoinkbombs mega EntityDamageRadius 12`
 
-# Clean test server
-rm -rf run/
-```
+### Pull radii
 
-### Debugging
+`/yoinkbombs pull <attr> <number>`
 
-```bash
-# Run server in debug mode
-./gradlew runServer -Pdebug
+- **ItemPullRadius** – Radius (blocks) for yoinking items at explosion position (default 12). Range: 1–64.
+- **CrossbowPullRadius** – Radius for fallback pull when bow or crossbow is equipped (default 32). Range: 1–64.
 
-# Then connect your IDE debugger to localhost:5005
-```
+Examples:
 
----
+- `/yoinkbombs pull ItemPullRadius 24`
+- `/yoinkbombs pull CrossbowPullRadius 48`
 
-## Customization
+### Permissions
 
-### Adding Dependencies
-
-Edit `build.gradle.kts`:
-
-```kotlin
-dependencies {
-    // Hytale API (provided by server)
-    compileOnly(files("./HytaleServer.jar"))
-
-    // Your dependencies (will be bundled)
-    implementation("com.google.code.gson:gson:2.10.1")
-
-    // Test dependencies
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
-}
-```
-
-### Configuring Server Testing
-
-**Run Hytale Server** - A Gradle plugin to download and run a Hytale server for development and testing purposes. The server files will be located in the `run/` directory of the project. Before starting the server it will compile (shadowJar task) and copy the plugin jar to the server's `mods/` folder.
-
-**Usage:**
-
-Edit `build.gradle.kts`:
-
-```kotlin
-runHytale {
-    jarUrl = "url to hytale server jar"
-}
-```
-
-Run the server with:
-
-```bash
-# Windows
-gradlew.bat runServer
-
-# Linux/Mac
-./gradlew runServer
-```
-
-**Features:**
-
-- ✅ Automatic server JAR download and caching
-- ✅ Compiles and deploys your plugin automatically
-- ✅ Starts server with interactive console
-- ✅ One-command workflow: `./gradlew runServer`
-- ✅ Server files in `run/` directory (gitignored)
-
-### Implementing Your Plugin
-
-**Recommended folder structure:**
-
-```
-src/main/java/com/yourname/yourplugin/
-├── YourPlugin.java          # Main class
-├── commands/                # Commands
-├── listeners/               # Event listeners
-├── services/                # Business logic
-├── storage/                 # Data persistence
-├── config/                  # Configuration
-└── utils/                   # Utilities
-```
-
-**See our documentation for examples:**
-
-- [Getting Started with Plugins](https://britakee-studios.gitbook.io/hytale-modding-documentation/plugins-java-development/07-getting-started-with-plugins)
-- [Advanced Plugin Patterns](https://britakee-studios.gitbook.io/hytale-modding-documentation/plugins-java-development/12-advanced-plugin-patterns)
-- [Common Plugin Features](https://britakee-studios.gitbook.io/hytale-modding-documentation/plugins-java-development/14-common-plugin-features)
+- **yoinkbombs.admin** – Use `/yoinkbombs` to change config and reload.
+- **yoinkbombs.trusted** – Use Yoink Bombs block-break (break blocks with bomb in hand to trigger yoink).
 
 ---
 
-## CI/CD
+## Ownership Rules
 
-This template includes a GitHub Actions workflow that:
-
-1. ✅ Builds your plugin on every push
-2. ✅ Runs tests
-3. ✅ Uploads artifacts
-4. ✅ Creates releases (when you tag)
-
-### Creating a Release
-
-```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
-
-GitHub Actions will automatically build and create a release with your plugin JAR.
+Yoink drops are delivered to the player who triggers the block break or who owns the projectile (thrown/shot). Fallback pull applies to the player holding the bow or crossbow.
 
 ---
 
-## Best Practices
+## Protection and Safety
 
-### ✅ DO:
+Yoink Bombs never bypass protection systems.
 
-- Use the Service-Storage pattern for data management
-- Write unit tests for your business logic
-- Use structured logging (not `System.out.println`)
-- Handle errors gracefully
-- Document your public API
-- Version your releases semantically (1.0.0, 1.1.0, etc.)
+Supported safeguards:
 
-### ❌ DON'T:
+- Claim / region protection respected
 
-- Hardcode configuration values
-- Block the main thread with heavy operations
-- Ignore exceptions
-- Use deprecated APIs
-- Commit sensitive data (API keys, passwords)
+This mod is safe for:
+
+- Survival servers
+- Paid / whitelist servers
+- Long-running worlds
 
 ---
 
-## Troubleshooting
+## Protection Mod Support
 
-### Build Fails
+Yoink Bombs integrates with protection plugins when available.
 
-```bash
-# Clean and rebuild
-./gradlew clean build --refresh-dependencies
-```
+Supported:
 
-### Server Won't Start
-
-1. Check that `jarUrl` in `build.gradle.kts` is correct
-2. Verify Java 25 is installed: `java -version`
-3. Check logs in `run/logs/`
-
-### Plugin Not Loading
-
-1. Verify `manifest.json` has correct `Main` class
-2. Check server logs for errors
-3. Ensure all dependencies are bundled in JAR
+- WorldProtect (auto-detected). Bomb block breaking is blocked in protected regions.
 
 ---
 
-## Documentation
+## Configuration
 
-For detailed guides on plugin development, see:
+Config keys (file or via `/yoinkbombs` commands):
 
-- [Hytale Modding Documentation](https://github.com/yourusername/hytale-modding/tree/main/Documentation)
-- [Getting Started with Plugins](../Documentation/07-getting-started-with-plugins.md)
-- [Advanced Plugin Patterns](../Documentation/12-advanced-plugin-patterns.md)
-- [Common Plugin Features](../Documentation/14-common-plugin-features.md)
-
----
-
-## Contributing
-
-Contributions are welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
+- **Explosion radii:** `AreaRadius`, `SilkRadius`, `MegaYoinkRadius`, `OreRadius`, `HarvesterRadius` (defaults: Area/Silk/Harvester 4, Mega 8, Ore 6).
+- **Entity damage radii:** `AreaEntityDamageRadius`, `SilkEntityDamageRadius`, etc. (same defaults).
+- **Pull:** `ItemPullRadius` (yoink at explosion, default 12, 1–64), `CrossbowPullRadius` (fallback when bow/crossbow equipped, default 32, 1–64).
+- **Lists:** `BlockWhitelist`, `HarvesterWhitelist` (comma-separated).
+- **Yoink:** `YoinkToInventory=true` – try inventory first, then spawn at feet.
 
 ---
 
-## License
+## How Many Blocks Are Impacted?
 
-This template is released under the MIT License. You are free to use it for any purpose.
+The explosion uses a spherical radius. The approximate maximum number of blocks inside a radius is:
+
+`blocks ≈ (4/3) * π * r^3`
+
+This is an estimate. The real number can be slightly lower due to grid layout and filters.
+
+Approximate blocks by radius (1 to 20):
+
+| Radius | Approx Blocks |
+| --- | --- |
+| 1 | 4 |
+| 2 | 34 |
+| 3 | 113 |
+| 4 | 268 |
+| 5 | 524 |
+| 6 | 905 |
+| 7 | 1437 |
+| 8 | 2145 |
+| 9 | 3054 |
+| 10 | 4189 |
+| 11 | 5575 |
+| 12 | 7238 |
+| 13 | 9204 |
+| 14 | 11494 |
+| 15 | 14137 |
+| 16 | 17157 |
+| 17 | 20574 |
+| 18 | 24429 |
+| 19 | 28758 |
+| 20 | 33510 |
 
 ---
 
-## Support
+## Edge Case Handling
 
-- **Issues:** [GitHub Issues](https://github.com/yourusername/hytale-plugin-template/issues)
-- **Documentation:** [Hytale Modding Docs](https://github.com/yourusername/hytale-modding)
-- **Community:** Join the Hytale modding community
+- Inventory full: items spawn at player feet
 
 ---
 
-## Credits
+## Compatibility
 
-Created by the Hytale modding community.
-
-Based on best practices from production Hytale plugins.
+- No world format changes
+- Safe to add or remove from existing worlds
 
 ---
 
-**Happy Modding! 🎮**
+## Use Cases
+
+- Mining for ops and trusted players
+- Clearing stone, dirt, or ore veins during mining
+
+---
+
+## Getting Started
+
+- Configure `.env` with `HYTALE_HOME` (and optionally `JDK_URL`).
+- Run `.\downloadJdk.ps1` if you use the repo-local JDK.
+- Build: `.\gradlew.bat shadowJar`
+- Start server: `.\gradlew.bat runServer`
+- Prepare only: `.\gradlew.bat prepareServer`
+- Stop server: `.\gradlew.bat stopServer` (uses `run\server.pid`)
+- Drop extra test mods into `tests/mods`
+
+Server package zip (optional):
+
+- Place the latest server zip in `%USERPROFILE%\.hytale\server\` (example: `2026.01.28-87d03be09.zip`).
+- The runner will extract the newest zip and use it instead of downloading.
+

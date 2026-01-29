@@ -1,0 +1,98 @@
+{
+  "TranslationProperties": {
+    "Name": "Yoink Bomb Bow",
+    "Description": "Fires bomb arrows that explode on impact."
+  },
+  "PlayerAnimationsId": "Bow",
+  "Model": "Items/Weapons/Bow/Iron.blockymodel",
+  "Texture": "Items/Weapons/Bow/Iron_Texture.png",
+  "Icon": "Icons/ItemsGenerated/Weapon_Bow_Iron.png",
+  "Categories": [
+    "Items.Weapons"
+  ],
+  "Quality": "Legendary",
+  "Recipe": {
+    "TimeSeconds": 1.0,
+    "Input": [
+      { "ItemId": "Ingredient_Bar_Iron", "Quantity": 2 },
+      { "ItemId": "Ingredient_Fabric_Scrap_Linen", "Quantity": 3 },
+      { "ItemId": "Ingredient_Powder_Boom", "Quantity": 2 }
+    ],
+    "OutputQuantity": 1,
+    "BenchRequirement": [
+      {
+        "Id": "Workbench",
+        "Type": "Crafting",
+        "Categories": [ "Workbench_Tools" ]
+      }
+    ]
+  },
+  "Interactions": {
+    "Primary": "YoinkBombs_Bow_Primary"
+  },
+  "InteractionVars": {
+    "Primary_Shoot_Charge": {
+      "Interactions": [
+        {
+          "Parent": "YoinkBombs_Bow_Primary_Shoot_Charge",
+          "Effects": {
+            "ClearSoundEventOnFinish": true,
+            "WorldSoundEventId": "SFX_Bow_T2_Draw",
+            "LocalSoundEventId": "SFX_Bow_T2_Draw_Local"
+          },
+          "HorizontalSpeedMultiplier": 0.67
+        }
+      ]
+    },
+    "Primary_Shoot_Strength_0": {
+      "Interactions": [
+        {
+          "Parent": "YoinkBombs_Bow_Shoot_Area"
+        }
+      ]
+    },
+    "Primary_Shoot_Strength_1": {
+      "Interactions": [
+        {
+          "Parent": "YoinkBombs_Bow_Shoot_Area"
+        }
+      ]
+    },
+    "Primary_Shoot_Strength_2": {
+      "Interactions": [
+        {
+          "Parent": "YoinkBombs_Bow_Shoot_Area"
+        }
+      ]
+    },
+    "Primary_Shoot_Strength_3": {
+      "Interactions": [
+        {
+          "Parent": "YoinkBombs_Bow_Shoot_Area"
+        }
+      ]
+    },
+    "Primary_Shoot_Strength_4": {
+      "Interactions": [
+        {
+          "Parent": "YoinkBombs_Bow_Shoot_Area"
+        }
+      ]
+    },
+    "No_Ammo_Effects": {
+      "Interactions": [
+        "Common_Bow_No_Ammo"
+      ]
+    }
+  },
+  "Tags": {
+    "Type": [
+      "Weapon"
+    ],
+    "Family": [
+      "Bow"
+    ]
+  },
+  "Weapon": {},
+  "ItemSoundSetId": "ISS_Weapons_Wood"
+}

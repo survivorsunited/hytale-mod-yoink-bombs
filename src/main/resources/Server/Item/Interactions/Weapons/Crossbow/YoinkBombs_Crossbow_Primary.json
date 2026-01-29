@@ -1,0 +1,49 @@
+{
+  "Type": "ModifyInventory",
+  "ItemToRemove": {
+    "Id": "SU_YoinkBombs_AreaArrow",
+    "Quantity": 1
+  },
+  "Next": "YoinkBombs_Crossbow_Shoot_Area",
+  "Failed": {
+    "Type": "ModifyInventory",
+    "ItemToRemove": {
+      "Id": "SU_YoinkBombs_OreArrow",
+      "Quantity": 1
+    },
+    "Next": "YoinkBombs_Crossbow_Shoot_Ore",
+    "Failed": {
+      "Type": "ModifyInventory",
+      "ItemToRemove": {
+        "Id": "SU_YoinkBombs_SilkYoinkArrow",
+        "Quantity": 1
+      },
+      "Next": "YoinkBombs_Crossbow_Shoot_SilkYoink",
+      "Failed": {
+        "Type": "ModifyInventory",
+        "ItemToRemove": {
+          "Id": "SU_YoinkBombs_MegaYoinkArrow",
+          "Quantity": 1
+        },
+        "Next": "YoinkBombs_Crossbow_Shoot_MegaYoink",
+        "Failed": {
+          "Type": "ModifyInventory",
+          "ItemToRemove": {
+            "Id": "SU_YoinkBombs_HarvesterArrow",
+            "Quantity": 1
+          },
+          "Next": "YoinkBombs_Crossbow_Shoot_Harvester",
+          "Failed": {
+            "Type": "Replace",
+            "Var": "No_Ammo_Effects",
+            "DefaultValue": {
+              "Interactions": [
+                "Common_Bow_No_Ammo"
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

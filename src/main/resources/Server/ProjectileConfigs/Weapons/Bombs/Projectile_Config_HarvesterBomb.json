@@ -1,0 +1,35 @@
+{
+  "Model": "Bomb_Fire_Goblin",
+  "Physics": {
+    "Type": "Standard",
+    "Gravity": 20,
+    "TerminalVelocityAir": 50,
+    "TerminalVelocityWater": 15,
+    "RotationMode": "VelocityDamped",
+    "Bounciness": 0,
+    "SticksVertically": true
+  },
+  "LaunchForce": 25,
+  "SpawnOffset": {
+    "Y": 0.05,
+    "Z": -1
+  },
+  "Interactions": {
+    "ProjectileHit": {
+      "Cooldown": { "Cooldown": 0 },
+      "Interactions": [
+        { "Type": "Simple", "RunTime": 0, "Effects": { "WorldSoundEventId": "SFX_Goblin_Lobber_Bomb_Death", "LocalSoundEventId": "SFX_Goblin_Lobber_Bomb_Death" } },
+        { "Type": "RemoveEntity" },
+        "HarvesterBomb_Explode"
+      ]
+    },
+    "ProjectileMiss": {
+      "Cooldown": { "Cooldown": 0 },
+      "Interactions": [
+        { "Type": "Simple", "RunTime": 0, "Effects": { "WorldSoundEventId": "SFX_Goblin_Lobber_Bomb_Death", "LocalSoundEventId": "SFX_Goblin_Lobber_Bomb_Death" } },
+        { "Type": "RemoveEntity" },
+        "HarvesterBomb_Explode"
+      ]
+    }
+  }
+}

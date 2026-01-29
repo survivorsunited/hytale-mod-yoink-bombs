@@ -1,0 +1,22 @@
+{
+  "Type": "Explode",
+  "RunTime": 0.1,
+  "Config": {
+    "DamageEntities": true,
+    "DamageBlocks": true,
+    "BlockDamageRadius": 4,
+    "BlockDropChance": 1.0,
+    "EntityDamage": 999,
+    "EntityDamageRadius": 4,
+    "ItemTool": {
+      "Specs": [
+        { "Power": 2, "GatherType": "SoftBlocks" },
+        { "Power": 2, "GatherType": "Woods" }
+      ]
+    }
+  },
+  "Effects": {
+    "WorldSoundEventId": "SFX_Goblin_Lobber_Bomb_Death",
+    "LocalSoundEventId": "SFX_Goblin_Lobber_Bomb_Death"
+  }
+}

@@ -1,13 +1,90 @@
 plugins {
     id 'java'
     id 'org.jetbrains.gradle.plugin.idea-ext' version '1.3'
+    id "com.gradleup.shadow" version "9.3.1"
+    id "run-hytale"
 }
 
 import org.gradle.internal.os.OperatingSystem
 
+def loadDotEnv(File envFile) {
+    Map<String, String> env = [:]
+    if (!envFile.exists()) {
+        return env
+    }
+    envFile.eachLine { String rawLine ->
+        String line = rawLine.trim()
+        if (line.isEmpty() || line.startsWith("#")) {
+            return
+        }
+        int delimiterIndex = line.indexOf("=")
+        if (delimiterIndex <= 0) {
+            return
+        }
+        String key = line.substring(0, delimiterIndex).trim()
+        String value = line.substring(delimiterIndex + 1).trim()
+        if ((value.startsWith("\"") && value.endsWith("\"")) || (value.startsWith("'") && value.endsWith("'"))) {
+            value = value.substring(1, value.length() - 1)
+        }
+        if (!key.isEmpty()) {
+            env[key] = value
+        }
+    }
+    return env
+}
+
+def bumpPatchVersion(String versionString) {
+    if (versionString == null) {
+        throw new GradleException("Version is missing from gradle.properties.")
+    }
+    def parts = versionString.trim().split("\\.")
+    if (parts.length != 3) {
+        throw new GradleException("Version must be in MAJOR.MINOR.PATCH format (e.g., 0.0.3).")
+    }
+    int major = parts[0].toInteger()
+    int minor = parts[1].toInteger()
+    int patch = parts[2].toInteger() + 1
+    return "${major}.${minor}.${patch}"
+}
+
+tasks.register("bumpVersion") {
+    group = "build"
+    description = "Increment patch version for every build."
+    doLast {
+        File propsFile = file("gradle.properties")
+        if (!propsFile.exists()) {
+            throw new GradleException("gradle.properties not found at ${propsFile.absolutePath}")
+        }
+        List<String> lines = propsFile.readLines("UTF-8")
+        String currentVersion = null
+        List<String> updated = lines.collect { line ->
+            if (line.startsWith("version=")) {
+                currentVersion = line.substring("version=".length())
+                return "version=${bumpPatchVersion(currentVersion)}"
+            }
+            return line
+        }
+        if (currentVersion == null) {
+            throw new GradleException("version property not found in gradle.properties.")
+        }
+        propsFile.text = updated.join(System.lineSeparator()) + System.lineSeparator()
+        version = bumpPatchVersion(currentVersion)
+        println("Bumped version to ${version}")
+    }
+}
+
+def dotEnv = loadDotEnv(file(".env"))
+def envHytaleHome = dotEnv.get("HYTALE_HOME")
+if (!envHytaleHome) {
+    envHytaleHome = System.getenv("HYTALE_HOME")
+}
+
 ext {
     if (project.hasProperty('hytale_home')) {
         hytaleHome = project.findProperty('hytale_home')
+    }
+    else if (envHytaleHome != null && !envHytaleHome.toString().trim().isEmpty()) {
+        hytaleHome = envHytaleHome
     }
     else {
         def os = OperatingSystem.current()
@@ -48,7 +125,12 @@ javadoc {
 // compile against their code. This requires you to have Hytale installed using
 // the official launcher for now.
 dependencies {
-    implementation(files("$hytaleHome/install/$patchline/package/game/latest/Server/HytaleServer.jar"))
+    compileOnly(files("$hytaleHome/install/$patchline/package/game/latest/Server/HytaleServer.jar"))
+}
+
+runHytale {
+    jarUrl = "$hytaleHome/install/$patchline/package/game/latest/Server/HytaleServer.jar"
+    assetsPath = "$hytaleHome/install/$patchline/package/game/latest/Assets.zip"
 }
 
 // Create the working directory to run the server if it does not already exist.
@@ -56,6 +138,11 @@ def serverRunDir = file("$projectDir/run")
 if (!serverRunDir.exists()) {
     serverRunDir.mkdirs()
 }
+def serverRunModsDir = file("$serverRunDir/mods")
+if (!serverRunModsDir.exists()) {
+    serverRunModsDir.mkdirs()
+}
+def serverPidFile = file("$serverRunDir/server.pid")
 
 // Updates the manifest.json file with the latest properties defined in the
 // build.properties file. Currently we update the version and if packs are
@@ -78,54 +165,70 @@ tasks.named('processResources') {
     dependsOn 'updatePluginManifest'
 }
 
-def createServerRunArguments(String srcDir) {
-    def programParameters = '--allow-op --disable-sentry --assets="' + "${hytaleHome}/install/$patchline/package/game/latest/Assets.zip" + '"'
-    def modPaths = []
-    if (includes_pack.toBoolean()) {
-        modPaths << srcDir
-    }
-    if (load_user_mods.toBoolean()) {
-        modPaths << "${hytaleHome}/UserData/Mods"
-    }
-    if (!modPaths.isEmpty()) {
-        programParameters += ' --mods="' + modPaths.join(',') + '"'
-    }
-    return programParameters
+tasks.named("updatePluginManifest") {
+    dependsOn "bumpVersion"
 }
 
-// Creates a run configuration in IDEA that will run the Hytale server with
-// your plugin and the default assets.
-idea.project.settings.runConfigurations {
-    'HytaleServer'(org.jetbrains.gradle.ext.Application) {
-        mainClass = 'com.hypixel.hytale.Main'
-        moduleName = project.idea.module.name + '.main'
-        programParameters = createServerRunArguments(sourceSets.main.java.srcDirs.first().parentFile.absolutePath)
-        workingDirectory = serverRunDir.absolutePath
-    }
+tasks.named("shadowJar") {
+    dependsOn "cleanOldPluginJars"
+    archiveBaseName.set(rootProject.name)
+    archiveClassifier.set("")
 }
 
-// Creates a launch.json file for VSCode with the same configuration
-tasks.register('generateVSCodeLaunch') {
-    def vscodeDir = file("$projectDir/.vscode")
-    def launchFile = file("$vscodeDir/launch.json")
+tasks.register("cleanOldPluginJars") {
+    group = "build"
+    description = "Delete old plugin jars before building."
     doLast {
-        if (!vscodeDir.exists()) {
-            vscodeDir.mkdirs()
+        File libsDir = file("build/libs")
+        if (!libsDir.exists()) {
+            return
         }
-        def programParams = createServerRunArguments("\${workspaceFolder}")
-        def launchConfig = [
-            version: "0.2.0",
-            configurations: [
-                [
-                    type: "java",
-                    name: "HytaleServer",
-                    request: "launch",
-                    mainClass: "com.hypixel.hytale.Main",
-                    args: programParams,
-                    cwd: "\${workspaceFolder}/run"
-                ]
-            ]
-        ]
-        launchFile.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(launchConfig))
+        libsDir.listFiles()?.each { file ->
+            if (file.isFile() && file.name.endsWith(".jar")) {
+                if (!file.delete()) {
+                    throw new GradleException("Failed to delete old jar at ${file.absolutePath}")
+                }
+            }
+        }
+    }
+}
+
+tasks.named("build") {
+    dependsOn tasks.named("shadowJar")
+}
+
+tasks.register("stopServer") {
+    group = "application"
+    description = "Stop the Hytale server using the PID file."
+    doLast {
+        if (!serverPidFile.exists()) {
+            println("No PID file found at ${serverPidFile.absolutePath}")
+            return
+        }
+        String pid = serverPidFile.text.trim()
+        if (pid.isEmpty()) {
+            println("PID file is empty at ${serverPidFile.absolutePath}")
+            return
+        }
+        try {
+            if (OperatingSystem.current().isWindows()) {
+                def proc = new ProcessBuilder(["cmd", "/c", "taskkill", "/PID", pid, "/T", "/F"])
+                        .inheritIO()
+                        .start()
+                proc.waitFor()
+            } else {
+                def proc = new ProcessBuilder(["bash", "-lc", "kill -TERM ${pid}"])
+                        .inheritIO()
+                        .start()
+                proc.waitFor()
+            }
+        } catch (Exception ex) {
+            println("Failed to stop server PID ${pid}: ${ex.getMessage()}")
+            return
+        }
+        if (serverPidFile.exists()) {
+            serverPidFile.delete()
+        }
+        println("Stopped server PID ${pid}")
     }
 }

@@ -14,7 +14,8 @@ repositories {
 }
 
 dependencies {
-    // Hytale Server API (provided by server at runtime)
+    // Hytale Server API (provided by server at runtime); prefer run/server.jar if present for correct API
+    compileOnly(files("./run/server.jar"))
     compileOnly(files("./libs/HytaleServer.jar"))
     
     // Common dependencies (will be bundled in JAR)

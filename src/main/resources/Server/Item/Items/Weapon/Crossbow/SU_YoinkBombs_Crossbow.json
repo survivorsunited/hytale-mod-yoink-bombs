@@ -1,0 +1,43 @@
+{
+  "TranslationProperties": {
+    "Name": "Yoink Bomb Crossbow",
+    "Description": "Fires bomb arrows that explode on impact."
+  },
+  "PlayerAnimationsId": "Crossbow",
+  "Model": "Items/Weapons/Crossbow/Iron.blockymodel",
+  "Texture": "Items/Weapons/Crossbow/Iron_Texture.png",
+  "Icon": "Icons/ItemsGenerated/Weapon_Crossbow_Iron.png",
+  "Categories": [
+    "Items.Weapons"
+  ],
+  "Quality": "Legendary",
+  "Recipe": {
+    "TimeSeconds": 1.5,
+    "Input": [
+      { "ItemId": "Ingredient_Bar_Iron", "Quantity": 3 },
+      { "ItemId": "Ingredient_Fabric_Scrap_Linen", "Quantity": 2 },
+      { "ItemId": "Ingredient_Powder_Boom", "Quantity": 3 }
+    ],
+    "OutputQuantity": 1,
+    "BenchRequirement": [
+      {
+        "Id": "Workbench",
+        "Type": "Crafting",
+        "Categories": [ "Workbench_Tools" ]
+      }
+    ]
+  },
+  "Interactions": {
+    "Primary": "YoinkBombs_Crossbow_Primary"
+  },
+  "Tags": {
+    "Type": [
+      "Weapon"
+    ],
+    "Family": [
+      "Crossbow"
+    ]
+  },
+  "Weapon": {},
+  "ItemSoundSetId": "ISS_Weapons_Wood"
+}

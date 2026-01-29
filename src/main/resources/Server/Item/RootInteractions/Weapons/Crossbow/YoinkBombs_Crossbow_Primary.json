@@ -1,0 +1,14 @@
+{
+  "RequireNewClick": false,
+  "Cooldown": {
+    "Cooldown": 0.3
+  },
+  "Interactions": [
+    "YoinkBombs_Crossbow_Primary"
+  ],
+  "Tags": {
+    "Attack": [
+      "Ranged"
+    ]
+  }
+}
