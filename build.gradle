@@ -45,8 +45,12 @@ if (!runHytaleApplied && !tasks.findByName("prepareServer")) {
             }
             def cacheDir = new File(buildDir, "hytale-cache")
             cacheDir.mkdirs()
-            def extractedDir = new File(cacheDir, "server-zip-" + cachedZip.name.replaceAll(/\.zip$/i, ""))
-            if (!extractedDir.exists() || (extractedDir.lastModified() < cachedZip.lastModified())) {
+            def zipBaseName = cachedZip.name
+            if (zipBaseName.toLowerCase().endsWith(".zip")) {
+                zipBaseName = zipBaseName.substring(0, zipBaseName.length() - 4)
+            }
+            def extractedDir = new File(cacheDir, "server-zip-" + zipBaseName)
+            if (!extractedDir.exists() || extractedDir.lastModified() < cachedZip.lastModified()) {
                 if (extractedDir.exists()) extractedDir.deleteDir()
                 extractedDir.mkdirs()
                 def zip = new java.util.zip.ZipInputStream(cachedZip.newInputStream())
@@ -72,9 +76,9 @@ if (!runHytaleApplied && !tasks.findByName("prepareServer")) {
             if (!jarInZip.exists()) {
                 def found = null
                 extractedDir.eachFileRecurse { f -> if (f.file && f.name == "HytaleServer.jar") found = f }
-                jarInZip = found
+                if (found != null) jarInZip = found
             }
-            if (jarInZip == null || !jarInZip.exists()) {
+            if (!jarInZip.exists()) {
                 throw new GradleException("HytaleServer.jar not found in server zip (looked for Server/HytaleServer.jar or HytaleServer.jar)")
             }
             def runDir = new File(projectDir, "run")
