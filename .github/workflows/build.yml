@@ -31,16 +31,10 @@ jobs:
     - name: Grant Execute Permission for Gradlew
       run: chmod +x gradlew
 
-    # - name: Create stub HytaleServer.jar for compile (when com/ API stubs present)
-    #   run: |
-    #     if [ -d com ]; then
-    #       mkdir -p libs
-    #       jar cf libs/HytaleServer.jar -C com .
-    #     fi
-
     - name: Prepare server
       run: ./gradlew prepareServer
-
+      env:
+        HYTALE_SERVER_DOWNLOAD_URL: ${{ secrets.HYTALE_SERVER_DOWNLOAD_URL }}
 
     - name: Build with Gradle
       run: ./gradlew shadowJar
@@ -71,10 +65,15 @@ jobs:
     
     - name: Grant Execute Permission for Gradlew
       run: chmod +x gradlew
-    
+
+    - name: Prepare server
+      run: ./gradlew prepareServer
+      env:
+        HYTALE_SERVER_DOWNLOAD_URL: ${{ secrets.HYTALE_SERVER_DOWNLOAD_URL }}
+
     - name: Build with Gradle
       run: ./gradlew shadowJar
-    
+
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:

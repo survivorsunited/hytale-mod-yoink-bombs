@@ -4,12 +4,18 @@ plugins {
     id "com.gradleup.shadow" version "9.3.1"
 }
 
-// Apply run-hytale from buildSrc when available (runServer, prepareServer). Optional on CI.
+// Apply run-hytale from buildSrc (runServer, prepareServer). By ID first; on CI plugin ID often not found, so fallback to class.
 try {
     apply plugin: "run-hytale"
     logger.lifecycle("run-hytale plugin applied (runServer task available)")
 } catch (Exception e) {
-    logger.warn("run-hytale plugin not applied: {} – runServer not available", e.message)
+    logger.warn("run-hytale by id failed: {} – trying by class", e.message)
+    try {
+        apply plugin: Class.forName("RunHytalePlugin")
+        logger.lifecycle("run-hytale plugin applied by class (runServer task available)")
+    } catch (Exception e2) {
+        throw new GradleException("run-hytale plugin could not be applied by id or class: " + e2.message, e2)
+    }
 }
 
 import org.gradle.internal.os.OperatingSystem
