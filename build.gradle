@@ -4,18 +4,86 @@ plugins {
     id "com.gradleup.shadow" version "9.3.1"
 }
 
-// Apply run-hytale from buildSrc (runServer, prepareServer). By ID first; on CI plugin ID often not found, so fallback to class via buildscript classloader.
+// Apply run-hytale from buildSrc (runServer, prepareServer). Optional on CI where plugin ID is often not found.
+def runHytaleApplied = false
 try {
     apply plugin: "run-hytale"
+    runHytaleApplied = true
     logger.lifecycle("run-hytale plugin applied (runServer task available)")
 } catch (Exception e) {
-    logger.warn("run-hytale by id failed: {} – trying by class", e.message)
-    try {
-        def pluginClass = getClass().classLoader.loadClass("RunHytalePlugin")
-        apply plugin: pluginClass
-        logger.lifecycle("run-hytale plugin applied by class (runServer task available)")
-    } catch (Exception e2) {
-        throw new GradleException("run-hytale plugin could not be applied by id or class: " + e2.message, e2)
+    logger.warn("run-hytale plugin not applied: {} – runServer not available", e.message)
+}
+
+// When plugin is not applied (e.g. CI), provide prepareServer that downloads from HYTALE_SERVER_DOWNLOAD_URL and sets up run/server.jar.
+if (!runHytaleApplied && !tasks.findByName("prepareServer")) {
+    tasks.register("prepareServer") {
+        group = "hytale"
+        description = "Download server zip from HYTALE_SERVER_DOWNLOAD_URL and set up run/server.jar (used when run-hytale plugin not applied)."
+        doLast {
+            def downloadUrl = System.getenv("HYTALE_SERVER_DOWNLOAD_URL")
+            if (!downloadUrl?.trim()) {
+                throw new GradleException("HYTALE_SERVER_DOWNLOAD_URL is not set. Set it to the server zip URL for CI.")
+            }
+            def userHome = System.getProperty("user.home")
+            def serverDir = new File(userHome, ".hytale/server")
+            serverDir.mkdirs()
+            def cachedZip = new File(serverDir, "server.zip")
+            if (!cachedZip.exists()) {
+                println("Downloading server zip from " + downloadUrl + " into .hytale/server ...")
+                try {
+                    new URL(downloadUrl).withInputStream { input ->
+                        cachedZip.withOutputStream { output ->
+                            output << input
+                        }
+                    }
+                    println("Server zip downloaded and cached at " + cachedZip.absolutePath)
+                } catch (Exception ex) {
+                    throw new GradleException("Failed to download server zip from HYTALE_SERVER_DOWNLOAD_URL: " + ex.message, ex)
+                }
+            } else {
+                println("Using cached server zip at " + cachedZip.absolutePath)
+            }
+            def cacheDir = new File(buildDir, "hytale-cache")
+            cacheDir.mkdirs()
+            def extractedDir = new File(cacheDir, "server-zip-" + cachedZip.name.replaceAll(/\.zip$/i, ""))
+            if (!extractedDir.exists() || (extractedDir.lastModified() < cachedZip.lastModified())) {
+                if (extractedDir.exists()) extractedDir.deleteDir()
+                extractedDir.mkdirs()
+                def zip = new java.util.zip.ZipInputStream(cachedZip.newInputStream())
+                def entry = zip.nextEntry
+                while (entry != null) {
+                    def outFile = new File(extractedDir, entry.name)
+                    if (entry.directory) {
+                        outFile.mkdirs()
+                    } else {
+                        outFile.parentFile?.mkdirs()
+                        outFile.withOutputStream { out ->
+                            def buf = new byte[8192]
+                            int n
+                            while ((n = zip.read(buf)) >= 0) out.write(buf, 0, n)
+                        }
+                    }
+                    zip.closeEntry()
+                    entry = zip.nextEntry
+                }
+                zip.close()
+            }
+            def jarInZip = new File(extractedDir, "Server/HytaleServer.jar")
+            if (!jarInZip.exists()) {
+                def found = null
+                extractedDir.eachFileRecurse { f -> if (f.file && f.name == "HytaleServer.jar") found = f }
+                jarInZip = found
+            }
+            if (jarInZip == null || !jarInZip.exists()) {
+                throw new GradleException("HytaleServer.jar not found in server zip (looked for Server/HytaleServer.jar or HytaleServer.jar)")
+            }
+            def runDir = new File(projectDir, "run")
+            runDir.mkdirs()
+            def runJar = new File(runDir, "server.jar")
+            runJar.bytes = jarInZip.readBytes()
+            println("Prepared run/server.jar from " + jarInZip.absolutePath)
+            new File(runDir, "mods").mkdirs()
+        }
     }
 }
 
