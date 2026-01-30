@@ -31,10 +31,12 @@ import com.hypixel.hytale.server.core.util.Config;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.lang.reflect.Method;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
@@ -388,11 +390,14 @@ public class YoinkBombsSystem extends EntityEventSystem<EntityStore, BreakBlockE
     }
 
     /**
-     * Harvester Bomb/Arrow (block-break path): only affect blocks whose ID starts with one of the harvester
-     * whitelist prefixes (default Plant_.* and Wood_.*). Thrown/shot Harvester no longer uses Explode
-     * ItemTool; we break only harvestable blocks in code.
+     * Harvester Bomb/Arrow: treat a block as a crop if (1) it has a Use interaction containing
+     * {@code HarvestCrop} (canonical crop behavior), or (2) its ID matches the harvester whitelist
+     * prefixes (default plant_, wood_). Thrown/shot Harvester breaks only these blocks in code.
      */
     public static boolean isHarvestableCrop(@Nonnull BlockType blockType, @Nonnull YoinkBombsConfig cfg) {
+        if (blockTypeHasHarvestCropUse(blockType)) {
+            return true;
+        }
         String id = blockType.getId();
         if (id == null) {
             return false;
@@ -408,6 +413,67 @@ public class YoinkBombsSystem extends EntityEventSystem<EntityStore, BreakBlockE
             }
         }
         return false;
+    }
+
+    /**
+     * Returns true if the block's Use interaction chain contains HarvestCrop (e.g. block config
+     * has {@code "Interactions": { "Use": { "Interactions": [ { "Type": "HarvestCrop" } ] } } }).
+     * Uses reflection so we do not depend on a specific BlockType API; returns false on failure.
+     */
+    @SuppressWarnings("unchecked")
+    private static boolean blockTypeHasHarvestCropUse(@Nonnull BlockType blockType) {
+        try {
+            Method getInteractions = blockType.getClass().getMethod("getInteractions");
+            Object interactions = getInteractions.invoke(blockType);
+            if (interactions == null) {
+                return false;
+            }
+            Object useConfig = null;
+            if (interactions instanceof Map) {
+                useConfig = ((Map<String, Object>) interactions).get("Use");
+            }
+            if (useConfig == null) {
+                return false;
+            }
+            Object useInteractionsList = null;
+            if (useConfig instanceof Map) {
+                useInteractionsList = ((Map<String, Object>) useConfig).get("Interactions");
+            } else {
+                try {
+                    Method getUseInteractions = useConfig.getClass().getMethod("getInteractions");
+                    useInteractionsList = getUseInteractions.invoke(useConfig);
+                } catch (NoSuchMethodException ignored) {
+                    return false;
+                }
+            }
+            if (useInteractionsList == null || !(useInteractionsList instanceof java.util.Collection)) {
+                return false;
+            }
+            for (Object item : (java.util.Collection<?>) useInteractionsList) {
+                if (item == null) {
+                    continue;
+                }
+                String typeStr = null;
+                if (item instanceof Map) {
+                    Object t = ((Map<String, Object>) item).get("Type");
+                    typeStr = t != null ? String.valueOf(t) : null;
+                } else {
+                    try {
+                        Method getType = item.getClass().getMethod("getType");
+                        Object typeObj = getType.invoke(item);
+                        typeStr = typeObj != null ? String.valueOf(typeObj) : null;
+                    } catch (NoSuchMethodException ignored) {
+                        continue;
+                    }
+                }
+                if ("HarvestCrop".equals(typeStr)) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (Exception ignored) {
+            return false;
+        }
     }
 
     public static List<ItemStack> getBlockDrops(@Nonnull BlockType type, boolean silk) {
