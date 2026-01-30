@@ -31,13 +31,17 @@ jobs:
     - name: Grant Execute Permission for Gradlew
       run: chmod +x gradlew
 
-    - name: Create stub HytaleServer.jar for compile (when com/ API stubs present)
-      run: |
-        if [ -d com ]; then
-          mkdir -p libs
-          jar cf libs/HytaleServer.jar -C com .
-        fi
-    
+    # - name: Create stub HytaleServer.jar for compile (when com/ API stubs present)
+    #   run: |
+    #     if [ -d com ]; then
+    #       mkdir -p libs
+    #       jar cf libs/HytaleServer.jar -C com .
+    #     fi
+
+    - name: Prepare server
+      run: ./gradlew prepareServer
+
+
     - name: Build with Gradle
       run: ./gradlew shadowJar
     
