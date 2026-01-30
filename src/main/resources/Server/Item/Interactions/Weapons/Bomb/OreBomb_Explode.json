@@ -16,9 +16,8 @@
         { "Power": 3, "GatherType": "OreGold" },
         { "Power": 3, "GatherType": "OreThorium" },
         { "Power": 3, "GatherType": "OreCobalt" },
-        { "Power": 10, "GatherType": "OreAdamantite" },
-        { "Power": 10, "GatherType": "OreAdamantiteMagma" },
-        { "Power": 4, "GatherType": "OreMithril" }
+        { "Power": 6, "GatherType": "OreAdamantite", "Quality": 4 },
+        { "Power": 6, "GatherType": "OreMithril" , "Quality": 5 }
       ]
     }
   },

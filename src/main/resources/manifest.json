@@ -1,7 +1,7 @@
 {
     "Group": "SurvivorsUnited",
     "Name": "YoinkBombs",
-    "Version": "0.0.30",
+    "Version": "0.0.37",
     "Description": "Bomb upgrades with area block destruction and optional auto-loot.",
     "Authors": [
         {

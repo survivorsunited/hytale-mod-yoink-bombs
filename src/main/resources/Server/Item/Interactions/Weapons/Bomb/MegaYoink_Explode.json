@@ -13,18 +13,17 @@
         { "Power": 2, "GatherType": "SoftBlocks" },
         { "Power": 2, "GatherType": "Soils" },
         { "Power": 2, "GatherType": "Woods" },
-        { "Power": 4, "GatherType": "Rocks" },
-        { "Power": 4, "GatherType": "RockBasalt" },
+        { "Power": 6, "GatherType": "Rocks", "Quality": 1 },
         { "Power": 2, "GatherType": "Benches" },
-        { "Power": 10, "GatherType": "VolcanicRocks" },
+        { "Power": 4, "GatherType": "VolcanicRocks", "Quality": 1 },
         { "Power": 2, "GatherType": "OreCopper" },
         { "Power": 2, "GatherType": "OreIron" },
         { "Power": 2, "GatherType": "OreSilver" },
         { "Power": 2, "GatherType": "OreGold" },
         { "Power": 2, "GatherType": "OreThorium" },
         { "Power": 2, "GatherType": "OreCobalt" },
-        { "Power": 4, "GatherType": "OreAdamantite" },
-        { "Power": 4, "GatherType": "OreMithril" }
+        { "Power": 6, "GatherType": "OreAdamantite", "Quality": 4 },
+        { "Power": 6, "GatherType": "OreMithril" , "Quality": 5 }
       ]
     }
   },
