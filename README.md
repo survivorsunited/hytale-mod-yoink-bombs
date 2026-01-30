@@ -51,7 +51,7 @@ Yoink Bombs is a Hytale mod that adds area block destruction and an auto-loot ("
 
 ### Harvester Bomb
 
-- Harvests crops only (blocks with IDs containing "crop" or "plant")
+- Harvests crops only: blocks whose **Use** interaction contains **HarvestCrop**, or whose ID matches the harvester whitelist (default prefixes: plant_, wood_)
 - All resulting drops are teleported to the triggering player
 - Thrown bombs stick to surfaces before exploding
 
