@@ -77,7 +77,10 @@ open class BaseServerTask : DefaultTask() {
             "hytale-cache"
         ).apply { mkdirs() }
 
-        // Prefer a local server package zip if it exists.
+        // If HYTALE_SERVER_DOWNLOAD_URL is set, download the zip into .hytale/server and use it as the cached server package.
+        ensureServerZipFromDownloadUrl()
+
+        // Prefer a local server package zip if it exists (e.g. in .hytale/server).
         val localServerZip = findLatestServerZip()
         val serverJarSource: File
         val assetsSourceFromZip: File?
@@ -410,6 +413,38 @@ open class BaseServerTask : DefaultTask() {
             }
         }
         return "java"
+    }
+
+    /**
+     * If HYTALE_SERVER_DOWNLOAD_URL is set, ensures the server zip is present in .hytale/server
+     * by downloading from the URL when the cache file is missing.
+     * The zip is stored in .hytale/server and used as the cached server package.
+     */
+    private fun ensureServerZipFromDownloadUrl() {
+        val downloadUrl = System.getenv("HYTALE_SERVER_DOWNLOAD_URL") ?: return
+        if (downloadUrl.isBlank()) {
+            return
+        }
+        val userHome = System.getProperty("user.home") ?: return
+        val serverDir = File(userHome, ".hytale/server").apply { mkdirs() }
+        val cacheZipName = "server.zip"
+        val cachedZip = File(serverDir, cacheZipName)
+        if (cachedZip.exists()) {
+            println("Using cached server zip at ${cachedZip.absolutePath}")
+            return
+        }
+        println("Downloading server zip from $downloadUrl into .hytale/server ...")
+        try {
+            URI.create(downloadUrl).toURL().openStream().use { input ->
+                cachedZip.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+            println("Server zip downloaded and cached at ${cachedZip.absolutePath}")
+        } catch (e: Exception) {
+            println("ERROR: Failed to download server zip from HYTALE_SERVER_DOWNLOAD_URL")
+            println("Error: ${e.message}")
+        }
     }
 
     /**
