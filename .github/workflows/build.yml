@@ -34,6 +34,11 @@ jobs:
     - name: Grant Execute Permission for Gradlew
       run: chmod +x gradlew
 
+    - name: Prepare Server
+      run: ./gradlew prepareServer --no-daemon
+      env:
+        HYTALE_SERVER_DOWNLOAD_URL: ${{ secrets.HYTALE_SERVER_DOWNLOAD_URL }}
+
     - name: Build with Gradle
       run: ./gradlew shadowJar --no-daemon
 
@@ -50,18 +55,59 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: github.event_name == 'push'
+    permissions:
+      contents: write
 
     steps:
+    - name: Determine Release Metadata
+      id: release_meta
+      shell: bash
+      env:
+        REF_TYPE: ${{ github.ref_type }}
+        REF_NAME: ${{ github.ref_name }}
+        GIT_SHA: ${{ github.sha }}
+        RUN_NUMBER: ${{ github.run_number }}
+      run: |
+        if [[ "${REF_TYPE}" == "tag" ]]; then
+          echo "is_tag=true" >> "$GITHUB_OUTPUT"
+          echo "tag_name=${REF_NAME}" >> "$GITHUB_OUTPUT"
+          echo "release_name=${REF_NAME}" >> "$GITHUB_OUTPUT"
+        else
+          echo "is_tag=false" >> "$GITHUB_OUTPUT"
+          safe_ref="$(printf '%s' "${REF_NAME}" | sed -E 's#[^A-Za-z0-9._-]+#-#g; s#^[.-]+##; s#[.-]+$##')"
+          if [[ -z "${safe_ref}" ]]; then
+            safe_ref="build"
+          fi
+          short_sha="${GIT_SHA::7}"
+          echo "tag_name=${safe_ref}-${RUN_NUMBER}-${short_sha}" >> "$GITHUB_OUTPUT"
+          echo "release_name=${safe_ref} build ${RUN_NUMBER} (${short_sha})" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Download Build Artifact
       uses: actions/download-artifact@v4
       with:
         name: YoinkBombs-${{ github.sha }}
         path: build/libs/
 
-    - name: Create GitHub Release
+    - name: Create Tagged Release
+      if: steps.release_meta.outputs.is_tag == 'true'
       uses: softprops/action-gh-release@v2
       with:
+        name: ${{ steps.release_meta.outputs.release_name }}
+        files: build/libs/*.jar
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Create Branch Prerelease
+      if: steps.release_meta.outputs.is_tag != 'true'
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ steps.release_meta.outputs.tag_name }}
+        name: ${{ steps.release_meta.outputs.release_name }}
+        prerelease: true
+        target_commitish: ${{ github.sha }}
         files: build/libs/*.jar
         generate_release_notes: true
       env:
