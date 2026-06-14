@@ -9,13 +9,13 @@ import com.hypixel.hytale.server.core.entity.entities.ProjectileComponent;
 import com.hypixel.hytale.server.core.event.events.entity.EntityRemoveEvent;
 import com.hypixel.hytale.server.core.inventory.Inventory;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
-import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.Config;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.List;
 
 /**
@@ -23,11 +23,16 @@ import java.util.List;
  * records a pending yoink at the projectile position so items at the explosion site are yoinked
  * to the player.
  * <p>
- * Uses {@link EntityRemoveEvent#getEntity()} and the legacy {@link Entity} API (ref, transform, world)
+ * Uses {@link EntityRemoveEvent#getEntity()} and the legacy {@link Entity} API (ref, world)
  * plus {@link ProjectileComponent#getCreatorUuid()} to resolve the owner. Only entities with the
  * <b>legacy</b> {@link ProjectileComponent} (entity.entities) are handled; if the game uses the
  * ECS projectile system (ProjectileModule) without that component, yoink will not trigger for
  * those projectiles.
+ * <p>
+ * Entity position is obtained from {@code ProjectileComponent.lastBouncePosition} (the impact
+ * point) via reflection; if unavailable the entity's private {@code transformComponent} field is
+ * read reflectively. This deliberately avoids {@code Entity.getTransformComponent()}, which is
+ * absent from the runtime server API and would otherwise cause a {@link NoSuchMethodError}.
  */
 public final class YoinkBombsExplosionListener {
 
@@ -70,17 +75,14 @@ public final class YoinkBombsExplosionListener {
             return;
         }
 
-        @SuppressWarnings("removal") // Entity.getTransformComponent() deprecated; no replacement in server API
-        TransformComponent transform = entity.getTransformComponent();
-        if (transform == null) {
-            return;
-        }
-        Vector3d explosionPos = transform.getPosition().clone();
-
+        // Check for the projectile component BEFORE reading any position data.
+        // This avoids calling Entity.getTransformComponent() on non-projectile entities;
+        // that method does not exist in the runtime server API and would throw NoSuchMethodError.
         ProjectileComponent projectileComponent = store.getComponent(entityRef, ProjectileComponent.getComponentType());
         if (projectileComponent == null) {
             return;
         }
+
         java.util.UUID creatorUuid = getCreatorUuid(projectileComponent);
         if (creatorUuid == null) {
             return;
@@ -95,10 +97,69 @@ public final class YoinkBombsExplosionListener {
             return;
         }
 
+        // Obtain explosion position without calling Entity.getTransformComponent().
+        // Primary source: lastBouncePosition on the ProjectileComponent (the actual impact point).
+        // Fallback: the entity's private transformComponent field, accessed reflectively.
+        Vector3d explosionPos = getExplosionPosition(projectileComponent, entity);
+        if (explosionPos == null) {
+            return;
+        }
+
         long expiry = System.currentTimeMillis() + YOINK_DEFER_MS;
         pendingYoinks.add(new PendingYoink(explosionPos, ownerRef, expiry));
         if (isHarvesterProjectile(projectileComponent) || hasHarvesterInHand(player.getInventory())) {
             pendingHarvesterBreaks.add(new PendingHarvesterBreak(explosionPos, ownerRef, expiry));
+        }
+    }
+
+    /**
+     * Returns the explosion/impact position for the given projectile entity.
+     *
+     * <p>Prefers {@code ProjectileComponent.lastBouncePosition} (the point where the projectile
+     * last bounced or hit), because it represents the actual explosion site and avoids touching
+     * the entity transform altogether. Falls back to reading the entity's private
+     * {@code transformComponent} field reflectively – this bypasses {@code getTransformComponent()},
+     * which is absent from the runtime server API and causes a {@link NoSuchMethodError} when
+     * called directly.
+     */
+    @Nullable
+    private static Vector3d getExplosionPosition(@Nonnull ProjectileComponent projectileComponent,
+                                                  @Nonnull Entity entity) {
+        Vector3d lastBounce = getLastBouncePosition(projectileComponent);
+        if (lastBounce != null) {
+            return lastBounce.clone();
+        }
+        // Reflective fallback: read transformComponent field directly on Entity to avoid
+        // the missing Entity.getTransformComponent() method at runtime.
+        try {
+            Field tcField = Entity.class.getDeclaredField("transformComponent");
+            tcField.setAccessible(true);
+            Object tc = tcField.get(entity);
+            if (tc != null) {
+                Method getPos = tc.getClass().getMethod("getPosition");
+                Object pos = getPos.invoke(tc);
+                if (pos instanceof Vector3d) {
+                    return ((Vector3d) pos).clone();
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return null;
+    }
+
+    /**
+     * Gets the last bounce/impact position from the ProjectileComponent via reflection.
+     * The {@code lastBouncePosition} field is private and has no public accessor.
+     */
+    @Nullable
+    private static Vector3d getLastBouncePosition(@Nonnull ProjectileComponent projectileComponent) {
+        try {
+            Field field = ProjectileComponent.class.getDeclaredField("lastBouncePosition");
+            field.setAccessible(true);
+            Object value = field.get(projectileComponent);
+            return value instanceof Vector3d ? (Vector3d) value : null;
+        } catch (Exception ignored) {
+            return null;
         }
     }
 
