@@ -39,6 +39,29 @@ public final class YoinkBombsExplosionListener {
     private static final String YOINK_PREFIX = "SU_YoinkBombs_";
     private static final long YOINK_DEFER_MS = 200L;
 
+    /** Cached reflective access to {@code ProjectileComponent.lastBouncePosition}. */
+    private static final Field LAST_BOUNCE_POSITION_FIELD;
+    /** Cached reflective access to {@code Entity.transformComponent}. */
+    private static final Field ENTITY_TRANSFORM_FIELD;
+
+    static {
+        Field lastBounceField = null;
+        try {
+            lastBounceField = ProjectileComponent.class.getDeclaredField("lastBouncePosition");
+            lastBounceField.setAccessible(true);
+        } catch (Exception ignored) {
+        }
+        LAST_BOUNCE_POSITION_FIELD = lastBounceField;
+
+        Field transformField = null;
+        try {
+            transformField = Entity.class.getDeclaredField("transformComponent");
+            transformField.setAccessible(true);
+        } catch (Exception ignored) {
+        }
+        ENTITY_TRANSFORM_FIELD = transformField;
+    }
+
     private final Config<YoinkBombsConfig> config;
     private final List<PendingYoink> pendingYoinks;
     private final List<PendingHarvesterBreak> pendingHarvesterBreaks;
@@ -131,18 +154,18 @@ public final class YoinkBombsExplosionListener {
         }
         // Reflective fallback: read transformComponent field directly on Entity to avoid
         // the missing Entity.getTransformComponent() method at runtime.
-        try {
-            Field tcField = Entity.class.getDeclaredField("transformComponent");
-            tcField.setAccessible(true);
-            Object tc = tcField.get(entity);
-            if (tc != null) {
-                Method getPos = tc.getClass().getMethod("getPosition");
-                Object pos = getPos.invoke(tc);
-                if (pos instanceof Vector3d) {
-                    return ((Vector3d) pos).clone();
+        if (ENTITY_TRANSFORM_FIELD != null) {
+            try {
+                Object tc = ENTITY_TRANSFORM_FIELD.get(entity);
+                if (tc != null) {
+                    Method getPos = tc.getClass().getMethod("getPosition");
+                    Object pos = getPos.invoke(tc);
+                    if (pos instanceof Vector3d) {
+                        return ((Vector3d) pos).clone();
+                    }
                 }
+            } catch (Exception ignored) {
             }
-        } catch (Exception ignored) {
         }
         return null;
     }
@@ -153,10 +176,11 @@ public final class YoinkBombsExplosionListener {
      */
     @Nullable
     private static Vector3d getLastBouncePosition(@Nonnull ProjectileComponent projectileComponent) {
+        if (LAST_BOUNCE_POSITION_FIELD == null) {
+            return null;
+        }
         try {
-            Field field = ProjectileComponent.class.getDeclaredField("lastBouncePosition");
-            field.setAccessible(true);
-            Object value = field.get(projectileComponent);
+            Object value = LAST_BOUNCE_POSITION_FIELD.get(projectileComponent);
             return value instanceof Vector3d ? (Vector3d) value : null;
         } catch (Exception ignored) {
             return null;
